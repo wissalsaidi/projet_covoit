@@ -21,7 +21,7 @@ services:
     container_name: covourca-pma
     restart: unless-stopped
     ports:
-      - "8081:80"
+      - "9090:80"
     environment:
       PMA_HOST: mysql
       PMA_USER: root
