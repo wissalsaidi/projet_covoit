@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Trajet – CovoURCA</title>
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}"/>
+</head>
+<body class="bg-light">
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="container py-4" style="max-width:700px">
+  <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+  <div th:if="${erreur}" class="alert alert-danger" th:text="${erreur}"></div>
+
+  <div class="card shadow-sm">
+    <div class="card-header fw-bold text-white" style="background:#8B6914;">Détail du trajet</div>
+    <div class="card-body">
+      <div class="row mb-3">
+        <div class="col-6">
+          <p class="text-muted mb-1">Départ</p>
+          <strong th:text="${trajet.demande.pointDepart.nomLieu}"></strong>
+        </div>
+        <div class="col-6">
+          <p class="text-muted mb-1">Arrivée</p>
+          <strong th:text="${trajet.demande.pointArrivee.nomLieu}"></strong>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-6">
+          <p class="text-muted mb-1">Conducteur</p>
+          <span th:text="${trajet.conducteur.prenom + ' ' + trajet.conducteur.nom}"></span>
+        </div>
+        <div class="col-6">
+          <p class="text-muted mb-1">Passager</p>
+          <span th:text="${trajet.passager.prenom + ' ' + trajet.passager.nom}"></span>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-6">
+          <p class="text-muted mb-1">Statut</p>
+          <span class="badge fs-6"
+                th:classappend="${trajet.statut.name() == 'EN_COURS'} ? 'bg-primary' : (${trajet.statut.name() == 'TERMINE'} ? 'bg-success' : 'bg-danger')"
+                th:text="${trajet.statut}"></span>
+        </div>
+        <div class="col-6" th:if="${trajet.vehicule != null}">
+          <p class="text-muted mb-1">Véhicule</p>
+          <span th:text="${trajet.vehicule.marque + ' ' + trajet.vehicule.modele + ' (' + trajet.vehicule.couleur + ')'}"></span>
+        </div>
+      </div>
+
+      <!-- Code d'échange : visible par le passager -->
+      <div th:if="${utilisateur.id == trajet.passager.id and trajet.statut.name() == 'EN_COURS'}"
+           class="alert alert-info text-center mt-3">
+        <p class="mb-1">Votre code à communiquer au conducteur :</p>
+        <h1 class="display-4 fw-bold letter-spacing-wide" th:text="${trajet.identifiantEchange}"
+            style="letter-spacing:0.3em;"></h1>
+      </div>
+
+      <!-- Saisie du code : visible par le conducteur -->
+      <div th:if="${utilisateur.id == trajet.conducteur.id and trajet.statut.name() == 'EN_COURS'}" class="mt-3">
+        <form th:action="@{/trajets/{id}/confirmer-code(id=${trajet.id})}" method="post" class="row g-2 align-items-end">
+          <div class="col-8">
+            <label class="form-label">Saisir le code du passager</label>
+            <input type="text" class="form-control form-control-lg text-center" name="code"
+                   maxlength="4" pattern="[0-9]{4}" placeholder="0000" required/>
+          </div>
+          <div class="col-4">
+            <button type="submit" class="btn text-white w-100" style="background:#8B6914;">Confirmer</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Actions conducteur -->
+      <div th:if="${utilisateur.id == trajet.conducteur.id and trajet.statut.name() == 'EN_COURS'}"
+           class="d-flex gap-2 mt-3">
+        <form th:action="@{/trajets/{id}/terminer(id=${trajet.id})}" method="post">
+          <button type="submit" class="btn btn-success">Terminer le trajet</button>
+        </form>
+        <form th:action="@{/trajets/{id}/annuler(id=${trajet.id})}" method="post">
+          <button type="submit" class="btn btn-outline-danger">Annuler</button>
+        </form>
+      </div>
+
+      <!-- Notation -->
+      <div th:if="${trajet.statut.name() == 'TERMINE' and !dejaNote}" class="mt-4 border-top pt-3">
+        <h6 class="fw-bold">Noter votre partenaire</h6>
+        <form th:action="@{/notations/{id}(id=${trajet.id})}" method="post">
+          <div class="mb-2">
+            <label class="form-label">Note (1–5 étoiles)</label>
+            <select name="valeur" class="form-select w-auto">
+              <option value="5">⭐⭐⭐⭐⭐ — Excellent</option>
+              <option value="4">⭐⭐⭐⭐ — Très bien</option>
+              <option value="3" selected>⭐⭐⭐ — Bien</option>
+              <option value="2">⭐⭐ — Passable</option>
+              <option value="1">⭐ — Insuffisant</option>
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Commentaire (optionnel)</label>
+            <input type="text" name="commentaire" class="form-control" placeholder="Un mot sur ce trajet..."/>
+          </div>
+          <button type="submit" class="btn btn-warning fw-semibold">Envoyer la note</button>
+        </form>
+      </div>
+      <div th:if="${trajet.statut.name() == 'TERMINE' and dejaNote}"
+           class="mt-3 alert alert-secondary">
+        Vous avez déjà noté ce trajet.
+      </div>
+    </div>
+  </div>
+
+  <a th:href="@{/dashboard}" class="btn btn-outline-secondary mt-3">← Retour au dashboard</a>
+</div>
+
+<!-- WebSocket pour annulation en temps réel -->
+<script th:src="@{/webjars/sockjs-client/1.5.1/sockjs.min.js}"></script>
+<script th:src="@{/webjars/stomp-websocket/2.3.4/stomp.min.js}"></script>
+<script>
+  var socket = new SockJS('/ws');
+  var stompClient = Stomp.over(socket);
+  stompClient.connect({}, function() {
+    stompClient.subscribe('/user/queue/annulations', function(message) {
+      document.body.insertAdjacentHTML('afterbegin',
+        '<div class="alert alert-danger alert-dismissible fade show m-2">' +
+        message.body + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
+    });
+  });
+</script>
+<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

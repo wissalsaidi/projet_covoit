@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark" style="background-color:#8B6914;">
+  <div class="container">
+    <a class="navbar-brand fw-bold" th:href="@{/dashboard}">
+      <span style="color:#F5E6C8;">Covo</span><span style="color:#fff;">URCA</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link" th:href="@{/dashboard}">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/historique}">Historique</a></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/profil}">Mon profil</a></li>
+      </ul>
+      <div class="d-flex align-items-center" sec:authorize="isAuthenticated()">
+        <span class="text-light me-3" sec:authentication="name"></span>
+        <form th:action="@{/deconnexion}" method="post">
+          <button type="submit" class="btn btn-outline-light btn-sm">Déconnexion</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</nav>
+</body>
+</html>

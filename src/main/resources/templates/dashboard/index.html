@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Dashboard – CovoURCA</title>
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}"/>
+</head>
+<body class="bg-light">
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="container py-4">
+  <!-- Alertes flash -->
+  <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+    <span th:text="${success}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  <div th:if="${erreur}" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <span th:text="${erreur}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
+  <div class="row g-4">
+    <!-- Colonne gauche : Passager -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header fw-bold" style="background:#8B6914;color:white;">
+          Passager — Nouvelle demande
+        </div>
+        <div class="card-body">
+          <div th:if="${demandeEnCours != null}" class="alert alert-info">
+            <strong>Demande en cours</strong> : de
+            <span th:text="${demandeEnCours.pointDepart.nomLieu}"></span> vers
+            <span th:text="${demandeEnCours.pointArrivee.nomLieu}"></span>
+            <br/>Statut : <span class="badge bg-warning text-dark" th:text="${demandeEnCours.statut}"></span>
+            <form th:action="@{/demandes/{id}/annuler(id=${demandeEnCours.id})}" method="post" class="mt-2">
+              <button type="submit" class="btn btn-sm btn-outline-danger">Annuler</button>
+            </form>
+          </div>
+
+          <div th:if="${trajetEnCoursPassager != null}" class="alert alert-success">
+            <strong>Trajet en cours</strong> — un conducteur vous a pris en charge.
+            <a th:href="@{/trajets/{id}(id=${trajetEnCoursPassager.id})}" class="btn btn-sm btn-success ms-2">Voir</a>
+          </div>
+
+          <form th:if="${demandeEnCours == null and trajetEnCoursPassager == null}"
+                th:action="@{/demandes/nouvelle}" method="post">
+            <div class="mb-3">
+              <label class="form-label">Ligne</label>
+              <select class="form-select" id="ligneSelect" onchange="chargerPoints(this.value)">
+                <option value="">-- Choisir une ligne --</option>
+                <option th:each="l : ${lignes}" th:value="${l.id}" th:text="${l.nom}"></option>
+              </select>
+            </div>
+            <div class="row g-2">
+              <div class="col-6">
+                <label class="form-label">Point de départ</label>
+                <select class="form-select" name="departId" id="departSelect" required>
+                  <option value="">--</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label">Destination</label>
+                <select class="form-select" name="arriveeId" id="arriveeSelect" required>
+                  <option value="">--</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn w-100 mt-3 text-white" style="background:#8B6914;">
+              Envoyer la demande
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colonne droite : Conducteur -->
+    <div class="col-lg-6" th:if="${utilisateur.estConducteur}">
+      <div class="card shadow-sm">
+        <div class="card-header fw-bold text-white" style="background:#5a4010;">
+          Conducteur — Alertes en temps réel
+        </div>
+        <div class="card-body">
+          <div th:if="${trajetEnCoursConducteur != null}" class="alert alert-primary">
+            <strong>Trajet en cours</strong> avec
+            <span th:text="${trajetEnCoursConducteur.passager.prenom + ' ' + trajetEnCoursConducteur.passager.nom}"></span>
+            <a th:href="@{/trajets/{id}(id=${trajetEnCoursConducteur.id})}" class="btn btn-sm btn-primary ms-2">Gérer</a>
+          </div>
+          <div id="alertes-container">
+            <p class="text-muted small">En attente d'alertes...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Derniers trajets -->
+  <div class="card shadow-sm mt-4" th:if="${not #lists.isEmpty(derniersTrajets)}">
+    <div class="card-header fw-bold">Derniers trajets</div>
+    <div class="card-body p-0">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr><th>Départ</th><th>Arrivée</th><th>Rôle</th><th>Statut</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr th:each="t : ${derniersTrajets}">
+            <td th:text="${t.demande.pointDepart.nomLieu}"></td>
+            <td th:text="${t.demande.pointArrivee.nomLieu}"></td>
+            <td>
+              <span th:if="${t.conducteur.id == utilisateur.id}" class="badge bg-secondary">Conducteur</span>
+              <span th:if="${t.passager.id == utilisateur.id}" class="badge bg-info text-dark">Passager</span>
+            </td>
+            <td><span class="badge bg-success" th:text="${t.statut}"></span></td>
+            <td><a th:href="@{/trajets/{id}(id=${t.id})}" class="btn btn-sm btn-outline-secondary">Voir</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Lignes/Points JSON pour JS -->
+<script th:inline="javascript">
+  var lignesData = {};
+  /*[# th:each="l : ${lignes}"]*/
+  lignesData[/*[[${l.id}]]*/0] = [];
+  /*[# th:each="p : ${l.points}"]*/
+  lignesData[/*[[${l.id}]]*/0].push({id: /*[[${p.id}]]*/0, nom: /*[[${p.nomLieu}]]*/'', ordre: /*[[${p.ordrePassage}]]*/0});
+  /*[/]*/
+  /*[/]*/
+
+  function chargerPoints(ligneId) {
+    var points = lignesData[ligneId] || [];
+    var depart = document.getElementById('departSelect');
+    var arrivee = document.getElementById('arriveeSelect');
+    depart.innerHTML = '<option value="">-- Départ --</option>';
+    arrivee.innerHTML = '<option value="">-- Arrivée --</option>';
+    points.forEach(function(p) {
+      depart.innerHTML += '<option value="' + p.id + '">' + p.nom + '</option>';
+      arrivee.innerHTML += '<option value="' + p.id + '">' + p.nom + '</option>';
+    });
+  }
+</script>
+
+<!-- WebSocket pour les conducteurs -->
+<div th:if="${utilisateur.estConducteur}">
+  <script th:src="@{/webjars/sockjs-client/1.5.1/sockjs.min.js}"></script>
+  <script th:src="@{/webjars/stomp-websocket/2.3.4/stomp.min.js}"></script>
+  <script th:inline="javascript">
+    var socket = new SockJS('/ws');
+    var stompClient = Stomp.over(socket);
+    stompClient.connect({}, function() {
+      stompClient.subscribe('/user/queue/alertes', function(message) {
+        var data = JSON.parse(message.body);
+        var container = document.getElementById('alertes-container');
+        var html = '<div class="alert alert-warning alert-dismissible fade show">' +
+          '<strong>' + data.nomPassager + '</strong> attend de ' +
+          '<em>' + data.pointDepart + '</em> vers <em>' + data.pointArrivee + '</em>' +
+          (data.notePassager ? ' — Note: ' + data.notePassager.toFixed(1) + '/5' : '') +
+          '<div class="mt-2">' +
+          '<form action="/demandes/' + data.demandeId + '/accepter" method="post" style="display:inline">' +
+          '<button type="submit" class="btn btn-sm btn-success me-2">Accepter</button>' +
+          '</form>' +
+          '</div>' +
+          '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+          '</div>';
+        container.innerHTML = html + container.innerHTML;
+      });
+      stompClient.subscribe('/user/queue/annulations', function(message) {
+        alert(message.body);
+      });
+    });
+  </script>
+</div>
+
+<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>
