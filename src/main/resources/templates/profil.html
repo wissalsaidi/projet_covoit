@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Mon profil – CovoURCA</title>
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}"/>
+</head>
+<body class="bg-light">
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="container py-4" style="max-width:700px">
+  <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+  <div th:if="${erreur}" class="alert alert-danger" th:text="${erreur}"></div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-header fw-bold text-white" style="background:#8B6914;">Mon profil</div>
+    <div class="card-body">
+      <dl class="row mb-0">
+        <dt class="col-sm-4">Nom complet</dt>
+        <dd class="col-sm-8" th:text="${utilisateur.prenom + ' ' + utilisateur.nom}"></dd>
+        <dt class="col-sm-4">Email</dt>
+        <dd class="col-sm-8" th:text="${utilisateur.email}"></dd>
+        <dt class="col-sm-4">Rôle</dt>
+        <dd class="col-sm-8">
+          <span class="badge bg-info text-dark">Passager</span>
+          <span th:if="${utilisateur.estConducteur}" class="badge bg-secondary ms-1">Conducteur</span>
+        </dd>
+        <dt class="col-sm-4">Note moyenne</dt>
+        <dd class="col-sm-8">
+          <span th:if="${utilisateur.noteMoyenne != null}"
+                th:text="${#numbers.formatDecimal(utilisateur.noteMoyenne, 1, 1) + ' / 5 ⭐'}"></span>
+          <span th:if="${utilisateur.noteMoyenne == null}" class="text-muted">Pas encore noté</span>
+        </dd>
+      </dl>
+    </div>
+  </div>
+
+  <!-- Véhicules -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header fw-bold">Mes véhicules</div>
+    <div class="card-body">
+      <div th:if="${#lists.isEmpty(vehicules)}" class="text-muted mb-3">Aucun véhicule enregistré.</div>
+      <table class="table table-sm" th:if="${!#lists.isEmpty(vehicules)}">
+        <thead><tr><th>Marque</th><th>Modèle</th><th>Immat.</th><th>Places dispo</th></tr></thead>
+        <tbody>
+          <tr th:each="v : ${vehicules}">
+            <td th:text="${v.marque}"></td>
+            <td th:text="${v.modele}"></td>
+            <td th:text="${v.immatriculation}"></td>
+            <td th:text="${v.placesDisponibles + '/' + v.nombrePlaces}"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <hr/>
+      <h6 class="fw-semibold">Ajouter un véhicule</h6>
+      <form th:action="@{/profil/vehicule/ajouter}" th:object="${vehiculeDto}" method="post">
+        <div class="row g-2">
+          <div class="col-md-4">
+            <input type="text" class="form-control" th:field="*{marque}" placeholder="Marque *" required/>
+          </div>
+          <div class="col-md-4">
+            <input type="text" class="form-control" th:field="*{modele}" placeholder="Modèle *" required/>
+          </div>
+          <div class="col-md-4">
+            <input type="text" class="form-control" th:field="*{couleur}" placeholder="Couleur"/>
+          </div>
+          <div class="col-md-6">
+            <input type="text" class="form-control" th:field="*{immatriculation}" placeholder="Immatriculation *" required/>
+          </div>
+          <div class="col-md-3">
+            <input type="number" class="form-control" th:field="*{nombrePlaces}" placeholder="Places *" min="1" required/>
+          </div>
+          <div class="col-md-3">
+            <button type="submit" class="btn text-white w-100" style="background:#8B6914;">Ajouter</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

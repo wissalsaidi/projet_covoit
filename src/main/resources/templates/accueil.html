@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>CovoURCA – Covoiturage Campus</title>
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}"/>
+  <style>
+    body { background: #f8f3ea; }
+    .hero { background: linear-gradient(135deg, #8B6914 0%, #C4962A 100%); color: white; padding: 80px 0; }
+    .feature-icon { font-size: 2.5rem; color: #8B6914; }
+  </style>
+</head>
+<body>
+<div class="hero text-center">
+  <div class="container">
+    <h1 class="display-4 fw-bold mb-3">CovoURCA</h1>
+    <p class="lead mb-4">Le covoiturage entre étudiants et personnel de l'URCA.<br/>Simple, rapide, en temps réel.</p>
+    <a th:href="@{/connexion}" class="btn btn-light btn-lg me-2 fw-semibold">Se connecter</a>
+    <a th:href="@{/inscription}" class="btn btn-outline-light btn-lg fw-semibold">S'inscrire</a>
+  </div>
+</div>
+
+<div class="container my-5">
+  <div class="row g-4 text-center">
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-sm p-4">
+        <div class="feature-icon mb-3">🚗</div>
+        <h5 class="fw-bold">Proposez un trajet</h5>
+        <p class="text-muted">Déclarez votre véhicule et vos lignes. Recevez des alertes en temps réel quand un passager attend.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-sm p-4">
+        <div class="feature-icon mb-3">📍</div>
+        <h5 class="fw-bold">Trouvez un conducteur</h5>
+        <p class="text-muted">Rendez-vous à un point de RDV, envoyez votre demande et attendez qu'un conducteur accepte.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-sm p-4">
+        <div class="feature-icon mb-3">⭐</div>
+        <h5 class="fw-bold">Système de confiance</h5>
+        <p class="text-muted">Après chaque trajet, notez votre partenaire. Les notes moyennes sont visibles sur chaque profil.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="text-center text-muted py-3 border-top">
+  <small>CovoURCA — Université de Reims Champagne-Ardenne — Module RT0809</small>
+</footer>
+<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>
