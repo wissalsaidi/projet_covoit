@@ -16,6 +16,9 @@ public class InscriptionDto {
     @NotBlank
     private String email;
 
+    @NotBlank(message = "Le numéro de téléphone est requis")
+    private String telephone;
+
     @NotBlank
     @Size(min = 6, message = "Le mot de passe doit contenir au moins 6 caractères")
     private String motDePasse;

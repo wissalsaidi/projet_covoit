@@ -5,75 +5,329 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Inscription – CovoURCA</title>
   <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+  <style>
+    :root {
+      --amber: #78350f;
+      --amber-hover: #92400e;
+      --amber-50: #fffbeb;
+      --stone-50: #fafaf9;
+      --stone-100: #f5f5f4;
+      --stone-200: #e7e5e4;
+      --stone-300: #d6d3d1;
+      --stone-600: #57534e;
+      --stone-900: #1c1917;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(36px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes logoBounce {
+      0%   { opacity: 0; transform: scale(0.7) translateY(-20px); }
+      70%  { transform: scale(1.06) translateY(4px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @keyframes inputFade {
+      from { opacity: 0; transform: translateX(-12px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes shimmer {
+      0%   { background-position: -200% 0; }
+      100% { background-position:  200% 0; }
+    }
+    @keyframes roleReveal {
+      from { opacity: 0; max-height: 0; transform: translateY(-8px); }
+      to   { opacity: 1; max-height: 600px; transform: translateY(0); }
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, var(--amber-50) 0%, #fff 50%, var(--stone-100) 100%);
+      min-height: 100vh;
+      animation: fadeIn 0.5s ease;
+    }
+
+    /* ── Logo ── */
+    .covo-logo {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      text-decoration: none;
+      animation: logoBounce 0.8s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    .covo-logo img { height: 4rem; width: auto; }
+    .covo-logo-text { display: flex; flex-direction: column; line-height: 1.15; text-align: left; }
+    .covo-logo-name {
+      font-weight: 800; font-size: 1.6rem;
+      color: var(--amber); letter-spacing: -0.02em;
+    }
+    .covo-logo-sub {
+      font-weight: 500; font-size: 0.65rem;
+      color: var(--stone-600); letter-spacing: 0.04em; text-transform: uppercase;
+    }
+
+    /* ── Auth card ── */
+    .auth-card {
+      background: #fff;
+      border: 1px solid var(--stone-100);
+      border-radius: 1.25rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,.10);
+      animation: slideUp 0.65s ease 0.15s both;
+    }
+
+    /* ── Form fields ── */
+    .form-row-anim:nth-child(1) { animation: inputFade 0.5s ease 0.28s both; }
+    .form-row-anim:nth-child(2) { animation: inputFade 0.5s ease 0.38s both; }
+    .form-row-anim:nth-child(3) { animation: inputFade 0.5s ease 0.48s both; }
+    .form-row-anim:nth-child(4) { animation: inputFade 0.5s ease 0.58s both; }
+    .form-row-anim:nth-child(5) { animation: inputFade 0.5s ease 0.68s both; }
+
+    .form-control, .form-select {
+      border-radius: 0.6rem;
+      border: 1px solid var(--stone-300);
+      padding: 0.7rem 0.9rem;
+      font-size: 0.9rem;
+      color: var(--stone-900);
+      transition: border-color .2s, box-shadow .2s, transform .15s;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: var(--amber);
+      box-shadow: 0 0 0 3px rgba(120,53,15,.12);
+      outline: none;
+      transform: scale(1.01);
+    }
+    .form-label { font-size: 0.875rem; font-weight: 600; color: var(--stone-900); }
+    .text-danger.small { font-size: 0.78rem; margin-top: 0.25rem; }
+
+    /* ── Role toggle ── */
+    .role-btn {
+      flex: 1; padding: 0.75rem 1rem;
+      border-radius: 0.75rem; border: 2px solid var(--stone-200);
+      background: #fff; color: var(--stone-600); font-weight: 600;
+      font-size: 0.9rem; cursor: pointer;
+      transition: all .25s;
+    }
+    .role-btn.active {
+      border-color: var(--amber);
+      background: var(--amber-50);
+      color: var(--amber);
+      box-shadow: 0 4px 12px rgba(120,53,15,.18);
+    }
+    .role-btn:hover:not(.active) {
+      border-color: rgba(120,53,15,.4);
+      background: var(--stone-50);
+      transform: translateY(-1px);
+    }
+
+    /* ── Driver section ── */
+    .driver-section {
+      background: var(--stone-50);
+      border: 1px solid var(--stone-200);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      animation: slideUp 0.4s ease both;
+    }
+
+    /* ── Submit button ── */
+    .btn-submit {
+      background: var(--amber); color: #fff; border: none;
+      border-radius: 0.6rem; font-weight: 700; padding: 0.85rem;
+      width: 100%; font-size: 0.95rem; cursor: pointer;
+      position: relative; overflow: hidden;
+      transition: background .2s, transform .15s, box-shadow .2s;
+      animation: inputFade 0.5s ease 0.78s both;
+    }
+    .btn-submit::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.25) 50%, transparent 100%);
+      background-size: 200% 100%;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .btn-submit:hover {
+      background: var(--amber-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(120,53,15,.35);
+    }
+    .btn-submit:hover::after {
+      opacity: 1;
+      animation: shimmer 0.8s linear;
+    }
+
+    .link-amber { color: var(--amber); font-weight: 600; text-decoration: none; transition: color .2s; }
+    .link-amber:hover { color: var(--amber-hover); text-decoration: underline; }
+
+    .section-divider {
+      border-top: 1px solid var(--stone-200);
+      padding-top: 1.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .page-title {
+      animation: slideUp 0.6s ease 0.05s both;
+      font-size: 1.65rem; color: var(--stone-900);
+    }
+  </style>
 </head>
-<body class="bg-light">
-<div class="container py-5" style="max-width:600px">
-  <div class="text-center mb-4">
-    <h2 class="fw-bold" style="color:#8B6914;">CovoURCA</h2>
-    <p class="text-muted">Créer un compte</p>
-  </div>
+<body>
+<div class="py-5 px-3">
+  <div class="mx-auto w-100" style="max-width: 580px;">
 
-  <div class="card shadow-sm">
-    <div class="card-body p-4">
-      <div th:if="${erreur}" class="alert alert-danger" th:text="${erreur}"></div>
+    <!-- Logo -->
+    <div class="text-center mb-4">
+      <a th:href="@{/}" class="covo-logo">
+        <img th:src="@{/images/logo.png}" alt="CovoURCA"/>
+        <div class="covo-logo-text">
+          <span class="covo-logo-name">CovoURCA</span>
+          
+        </div>
+      </a>
+      <h2 class="mt-4 fw-bold page-title">Créer votre compte</h2>
+    </div>
 
-      <form th:action="@{/inscription}" th:object="${inscriptionDto}" method="post">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Nom *</label>
-            <input type="text" class="form-control" th:field="*{nom}" required/>
-            <div class="text-danger small" th:if="${#fields.hasErrors('nom')}" th:errors="*{nom}"></div>
+    <!-- Card -->
+    <div class="auth-card">
+      <div class="p-4 p-sm-5">
+
+        <div th:if="${erreur}" class="alert alert-danger rounded-3 py-2 small border-0" th:text="${erreur}"></div>
+
+        <form th:action="@{/inscription}" th:object="${inscriptionDto}" method="post" class="d-flex flex-column gap-3">
+
+          <!-- Name row -->
+          <div class="row g-3 form-row-anim">
+            <div class="col-md-6">
+              <label class="form-label mb-1">Prénom *</label>
+              <input type="text" class="form-control" th:field="*{prenom}" required placeholder="Marie"/>
+              <div class="text-danger small" th:if="${#fields.hasErrors('prenom')}" th:errors="*{prenom}"></div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label mb-1">Nom *</label>
+              <input type="text" class="form-control" th:field="*{nom}" required placeholder="Dupont"/>
+              <div class="text-danger small" th:if="${#fields.hasErrors('nom')}" th:errors="*{nom}"></div>
+            </div>
           </div>
-          <div class="col-md-6">
-            <label class="form-label">Prénom *</label>
-            <input type="text" class="form-control" th:field="*{prenom}" required/>
-            <div class="text-danger small" th:if="${#fields.hasErrors('prenom')}" th:errors="*{prenom}"></div>
-          </div>
-          <div class="col-12">
-            <label class="form-label">Email *</label>
-            <input type="email" class="form-control" th:field="*{email}" required/>
+
+          <!-- Email -->
+          <div class="form-row-anim">
+            <label class="form-label mb-1">Adresse email *</label>
+            <input type="email" class="form-control" th:field="*{email}" required
+                   placeholder="exemple@univ-reims.fr"/>
             <div class="text-danger small" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
           </div>
-          <div class="col-12">
-            <label class="form-label">Mot de passe * <small class="text-muted">(6 caractères min.)</small></label>
-            <input type="password" class="form-control" th:field="*{motDePasse}" required minlength="6"/>
-            <div class="text-danger small" th:if="${#fields.hasErrors('motDePasse')}" th:errors="*{motDePasse}"></div>
-          </div>
-        </div>
 
-        <hr class="my-4"/>
-        <p class="fw-semibold mb-3">Je suis aussi conducteur (optionnel)</p>
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Marque</label>
-            <input type="text" class="form-control" th:field="*{marque}" placeholder="Renault"/>
+          <!-- Phone -->
+          <div class="form-row-anim">
+            <label class="form-label mb-1">Numéro de téléphone *</label>
+            <input type="tel" class="form-control" th:field="*{telephone}" required
+                   placeholder="+33 6 12 34 56 78"/>
+            <div class="text-danger small" th:if="${#fields.hasErrors('telephone')}" th:errors="*{telephone}"></div>
           </div>
-          <div class="col-md-6">
-            <label class="form-label">Modèle</label>
-            <input type="text" class="form-control" th:field="*{modele}" placeholder="Clio"/>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Couleur</label>
-            <input type="text" class="form-control" th:field="*{couleur}" placeholder="Blanc"/>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Immatriculation</label>
-            <input type="text" class="form-control" th:field="*{immatriculation}" placeholder="AB-123-CD"/>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Nombre de places</label>
-            <input type="number" class="form-control" th:field="*{nombrePlaces}" min="1" max="8"/>
-          </div>
-        </div>
 
-        <button type="submit" class="btn btn-warning w-100 mt-4 fw-semibold" style="background:#8B6914;border:0;color:#fff;">
-          Créer mon compte
-        </button>
-      </form>
+          <!-- Password row -->
+          <div class="row g-3 form-row-anim">
+            <div class="col-md-6">
+              <label class="form-label mb-1">Mot de passe * <small class="text-muted fw-normal">(6 car. min.)</small></label>
+              <input type="password" class="form-control" th:field="*{motDePasse}" required minlength="6"
+                     placeholder="••••••••"/>
+              <div class="text-danger small" th:if="${#fields.hasErrors('motDePasse')}" th:errors="*{motDePasse}"></div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label mb-1">Confirmer le mot de passe *</label>
+              <input type="password" class="form-control" id="confirmPwd" required minlength="6"
+                     placeholder="••••••••"/>
+              <div class="text-danger small" id="pwd-mismatch" style="display:none;">Les mots de passe ne correspondent pas.</div>
+            </div>
+          </div>
+
+          <!-- Role selection -->
+          <div class="section-divider form-row-anim">
+            <p class="fw-semibold mb-1" style="color:var(--stone-900);">Vous êtes</p>
+            <p class="small mb-3" style="color:var(--stone-600);">Êtes-vous conducteur ou passager ?</p>
+            <div class="d-flex gap-3 mb-3">
+              <button type="button" class="role-btn active" id="btn-passenger" onclick="setRole('passenger')">
+                <i class="bi bi-person-fill me-1"></i> Passager
+              </button>
+              <button type="button" class="role-btn" id="btn-driver" onclick="setRole('driver')">
+                <i class="bi bi-car-front-fill me-1"></i> Conducteur
+              </button>
+            </div>
+
+            <!-- Driver vehicle section (hidden by default) -->
+            <div class="driver-section" id="driver-section" style="display:none;">
+              <h6 class="fw-semibold mb-3" style="color:var(--stone-900);">Informations du véhicule</h6>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label mb-1">Marque</label>
+                  <input type="text" class="form-control" th:field="*{marque}" placeholder="Renault"/>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label mb-1">Modèle</label>
+                  <input type="text" class="form-control" th:field="*{modele}" placeholder="Clio"/>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label mb-1">Couleur</label>
+                  <input type="text" class="form-control" th:field="*{couleur}" placeholder="Blanc"/>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label mb-1">Immatriculation</label>
+                  <input type="text" class="form-control" th:field="*{immatriculation}" placeholder="AB-123-CD"/>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit mt-1">Créer mon compte</button>
+        </form>
+
+        <p class="text-center mt-4 mb-0 small" style="color: var(--stone-600);">
+          Déjà inscrit ?
+          <a th:href="@{/connexion}" class="link-amber">Se connecter</a>
+        </p>
+
+      </div>
     </div>
   </div>
-  <p class="text-center mt-3 text-muted">Déjà inscrit ? <a th:href="@{/connexion}">Se connecter</a></p>
 </div>
+
 <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+<script>
+  function setRole(role) {
+    const driverSection = document.getElementById('driver-section');
+    const btnPassenger  = document.getElementById('btn-passenger');
+    const btnDriver     = document.getElementById('btn-driver');
+
+    if (role === 'driver') {
+      driverSection.style.display = '';
+      btnDriver.classList.add('active');
+      btnPassenger.classList.remove('active');
+    } else {
+      driverSection.style.display = 'none';
+      btnPassenger.classList.add('active');
+      btnDriver.classList.remove('active');
+      ['marque','modele','couleur','immatriculation'].forEach(function(id) {
+        var el = document.querySelector('[name="' + id + '"]');
+        if (el) el.value = '';
+      });
+    }
+  }
+
+  document.querySelector('form').addEventListener('submit', function(e) {
+    var pwd     = document.querySelector('[name="motDePasse"]').value;
+    var confirm = document.getElementById('confirmPwd').value;
+    var msg     = document.getElementById('pwd-mismatch');
+    if (pwd !== confirm) {
+      e.preventDefault();
+      msg.style.display = '';
+      document.getElementById('confirmPwd').focus();
+    } else {
+      msg.style.display = 'none';
+    }
+  });
+</script>
 </body>
 </html>

@@ -31,6 +31,7 @@ public class UtilisateurService {
             .nom(dto.getNom())
             .prenom(dto.getPrenom())
             .email(dto.getEmail())
+            .telephone(dto.getTelephone())
             .motDePasse(passwordEncoder.encode(dto.getMotDePasse()))
             .estConducteur(false)
             .build();
