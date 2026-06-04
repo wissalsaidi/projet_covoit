@@ -5,51 +5,247 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>CovoURCA – Covoiturage Campus</title>
   <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
   <style>
-    body { background: #f8f3ea; }
-    .hero { background: linear-gradient(135deg, #8B6914 0%, #C4962A 100%); color: white; padding: 80px 0; }
-    .feature-icon { font-size: 2.5rem; color: #8B6914; }
+    :root {
+      --amber: #78350f;
+      --amber-hover: #92400e;
+      --amber-50: #fffbeb;
+      --stone-50: #fafaf9;
+      --stone-100: #f5f5f4;
+      --stone-200: #e7e5e4;
+      --stone-600: #57534e;
+      --stone-900: #1c1917;
+    }
+    body { background: var(--stone-50); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; margin: 0; }
+
+    /* ── Animations ── */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-60px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(60px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50%      { transform: translateY(-12px); }
+    }
+
+    .anim-fade  { animation: fadeIn     0.7s ease both; }
+    .anim-up    { animation: slideUp    0.7s ease both; }
+    .anim-left  { animation: slideInLeft  0.8s ease both; }
+    .anim-right { animation: slideInRight 0.8s ease both; }
+
+    .d1 { animation-delay: .10s; }
+    .d2 { animation-delay: .20s; }
+    .d3 { animation-delay: .35s; }
+    .d4 { animation-delay: .50s; }
+    .d5 { animation-delay: .65s; }
+
+    /* ── Navbar ── */
+    .covo-nav {
+      background: #fff;
+      border-bottom: 1px solid var(--stone-200);
+      padding: 0.65rem 0;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 16px rgba(0,0,0,.06);
+    }
+    .covo-logo {
+      display: flex; align-items: center; gap: 0.65rem;
+      text-decoration: none;
+    }
+    .covo-logo img { height: 3.6rem; width: auto; transition: transform .3s; }
+    .covo-logo:hover img { transform: scale(1.07); }
+    .covo-logo-text { display: flex; flex-direction: column; line-height: 1.15; }
+    .covo-logo-name {
+      font-weight: 800; font-size: 1.45rem;
+      color: var(--amber); letter-spacing: -0.02em;
+    }
+    .covo-logo-sub {
+      font-weight: 500; font-size: 0.68rem;
+      color: var(--stone-600); letter-spacing: 0.03em; text-transform: uppercase;
+    }
+
+    /* ── Buttons ── */
+    .btn-amber {
+      background: var(--amber); color: #fff; border: none;
+      padding: 0.65rem 1.5rem; border-radius: 0.75rem;
+      font-weight: 700; font-size: 0.9rem; text-decoration: none;
+      display: inline-block;
+      transition: background .2s, transform .15s, box-shadow .2s;
+    }
+    .btn-amber:hover {
+      background: var(--amber-hover); color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(120,53,15,.35);
+    }
+    .btn-outline-amber {
+      background: #fff; color: var(--amber);
+      border: 2px solid #fde68a;
+      padding: 0.65rem 1.5rem; border-radius: 0.75rem;
+      font-weight: 700; font-size: 0.9rem; text-decoration: none;
+      display: inline-block;
+      transition: background .2s, border-color .2s, transform .15s;
+    }
+    .btn-outline-amber:hover {
+      background: var(--amber-50); color: var(--amber);
+      border-color: var(--amber); transform: translateY(-2px);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, var(--amber-50) 0%, var(--stone-100) 100%);
+      padding: 90px 0 110px;
+      overflow: hidden;
+    }
+    .hero .subtitle {
+      color: var(--stone-600); font-size: 1.2rem; line-height: 1.75; max-width: 480px;
+    }
+    .hero-img-card {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 2rem;
+      box-shadow: 0 32px 72px rgba(0,0,0,.14);
+      border: 3px solid #fef3c7;
+      max-width: 400px; width: 100%;
+      animation: float 5s ease-in-out infinite;
+    }
+    .hero-img-card img { width: 100%; height: auto; display: block; border-radius: 1rem; }
+
+    /* ── Features ── */
+    .features { background: #fff; padding: 80px 0; }
+    .features h2 { font-size: 2rem; font-weight: 800; color: var(--stone-900); }
+    .feature-card {
+      background: var(--stone-50); border: 1px solid var(--stone-100);
+      border-radius: 1rem; padding: 1.75rem; height: 100%;
+      transition: box-shadow .25s, transform .25s;
+    }
+    .feature-card:hover { box-shadow: 0 10px 30px rgba(0,0,0,.09); transform: translateY(-5px); }
+    .feature-icon {
+      width: 3.25rem; height: 3.25rem;
+      background: var(--amber-50); border-radius: 0.75rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; margin-bottom: 1.25rem;
+      color: var(--amber);
+    }
+    .feature-card h5 { font-weight: 700; color: var(--stone-900); margin-bottom: 0.4rem; }
+    .feature-card p  { color: var(--stone-600); font-size: 0.9rem; line-height: 1.65; margin: 0; }
+
+    /* ── Footer ── */
+    .covo-footer { background: var(--stone-900); color: #a8a29e; }
+    .covo-footer a { color: #a8a29e; text-decoration: none; transition: color .2s; }
+    .covo-footer a:hover { color: #fff; }
   </style>
 </head>
 <body>
-<div class="hero text-center">
+
+<!-- Navbar -->
+<nav class="covo-nav anim-fade">
+  <div class="container d-flex align-items-center justify-content-between">
+    <a th:href="@{/}" class="covo-logo">
+      <img th:src="@{/images/logo.png}" alt="CovoURCA"/>
+      <div class="covo-logo-text">
+        <span class="covo-logo-name">CovoURCA</span>
+        
+      </div>
+    </a>
+    <div class="d-flex gap-2">
+      <a th:href="@{/connexion}"  class="btn-outline-amber">Se connecter</a>
+      <a th:href="@{/inscription}" class="btn-amber">S'inscrire</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
   <div class="container">
-    <h1 class="display-4 fw-bold mb-3">CovoURCA</h1>
-    <p class="lead mb-4">Le covoiturage entre étudiants et personnel de l'URCA.<br/>Simple, rapide, en temps réel.</p>
-    <a th:href="@{/connexion}" class="btn btn-light btn-lg me-2 fw-semibold">Se connecter</a>
-    <a th:href="@{/inscription}" class="btn btn-outline-light btn-lg fw-semibold">S'inscrire</a>
-  </div>
-</div>
+    <div class="row align-items-center g-5">
 
-<div class="container my-5">
-  <div class="row g-4 text-center">
-    <div class="col-md-4">
-      <div class="card h-100 border-0 shadow-sm p-4">
-        <div class="feature-icon mb-3">🚗</div>
-        <h5 class="fw-bold">Proposez un trajet</h5>
-        <p class="text-muted">Déclarez votre véhicule et vos lignes. Recevez des alertes en temps réel quand un passager attend.</p>
+      <!-- Left: subtitle + CTA -->
+      <div class="col-lg-6 anim-left">
+        <p class="subtitle mb-5">
+          Connectez-vous pour partager des trajets.
+          Économisez, réduisez votre empreinte carbone et voyagez en sécurité.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a th:href="@{/inscription}" class="btn-amber"
+             style="padding:.9rem 2.2rem; font-size:1.05rem;">Rejoindre la communauté</a>
+          <a th:href="@{/connexion}"  class="btn-outline-amber"
+             style="padding:.9rem 2.2rem; font-size:1.05rem;">Se connecter</a>
+        </div>
       </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card h-100 border-0 shadow-sm p-4">
-        <div class="feature-icon mb-3">📍</div>
-        <h5 class="fw-bold">Trouvez un conducteur</h5>
-        <p class="text-muted">Rendez-vous à un point de RDV, envoyez votre demande et attendez qu'un conducteur accepte.</p>
+
+      <!-- Right: ONE image card -->
+      <div class="col-lg-6 d-flex justify-content-center anim-right">
+        <div class="hero-img-card">
+          <img th:src="@{/images/logo.png}" alt="CovoURCA"/>
+        </div>
       </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card h-100 border-0 shadow-sm p-4">
-        <div class="feature-icon mb-3">⭐</div>
-        <h5 class="fw-bold">Système de confiance</h5>
-        <p class="text-muted">Après chaque trajet, notez votre partenaire. Les notes moyennes sont visibles sur chaque profil.</p>
-      </div>
+
     </div>
   </div>
-</div>
+</section>
 
-<footer class="text-center text-muted py-3 border-top">
-  <small>CovoURCA — Université de Reims Champagne-Ardenne — Module RT0809</small>
+<!-- Features -->
+<section class="features">
+  <div class="container">
+    <h2 class="text-center mb-5 anim-up">Pourquoi choisir CovoURCA ?</h2>
+    <div class="row g-4">
+      <div class="col-md-6 col-xl-3 anim-up d2">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+          <h5>Demandes en temps réel</h5>
+          <p>Connectez-vous instantanément avec des conducteurs et passagers sur votre route.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-xl-3 anim-up d3">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-shield-check"></i></div>
+          <h5>Vérification sécurisée</h5>
+          <p>Des profils vérifiés par l'université pour savoir avec qui vous voyagez.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-xl-3 anim-up d4">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-star-fill"></i></div>
+          <h5>Système de notes</h5>
+          <p>Construisez la confiance dans la communauté grâce aux avis honnêtes.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-xl-3 anim-up d5">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-clock-history"></i></div>
+          <h5>Historique des trajets</h5>
+          <p>Gardez une trace de tous vos trajets et dépenses passés facilement.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="covo-footer py-5">
+  <div class="container text-center">
+    <p class="mb-3">© 2026 CovoURCA — Université de Reims Champagne-Ardenne — Module RT0809</p>
+    <div class="d-flex justify-content-center gap-4 flex-wrap">
+      <a href="#">Politique de confidentialité</a>
+      <a href="#">Conditions d'utilisation</a>
+      <a href="#">Support</a>
+    </div>
+  </div>
 </footer>
+
 <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
 </body>
 </html>
