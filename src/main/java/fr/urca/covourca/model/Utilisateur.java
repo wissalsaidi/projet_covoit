@@ -39,6 +39,9 @@ public class Utilisateur {
     @Column(name = "est_conducteur")
     private boolean estConducteur = false;
 
+    @Column(name = "telephone")
+    private String telephone;
+
     @Column(name = "note_moyenne")
     private Double noteMoyenne;
 
