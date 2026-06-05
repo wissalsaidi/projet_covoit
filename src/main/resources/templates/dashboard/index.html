@@ -11,7 +11,6 @@
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <div class="container py-4">
-  <!-- Alertes flash -->
   <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
     <span th:text="${success}"></span>
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -22,7 +21,6 @@
   </div>
 
   <div class="row g-4">
-    <!-- Colonne gauche : Passager -->
     <div class="col-lg-6">
       <div class="card shadow-sm">
         <div class="card-header fw-bold" style="background:#8B6914;color:white;">
@@ -75,7 +73,6 @@
       </div>
     </div>
 
-    <!-- Colonne droite : Conducteur -->
     <div class="col-lg-6" th:if="${utilisateur.estConducteur}">
       <div class="card shadow-sm">
         <div class="card-header fw-bold text-white" style="background:#5a4010;">
@@ -95,7 +92,6 @@
     </div>
   </div>
 
-  <!-- Derniers trajets -->
   <div class="card shadow-sm mt-4" th:if="${not #lists.isEmpty(derniersTrajets)}">
     <div class="card-header fw-bold">Derniers trajets</div>
     <div class="card-body p-0">
@@ -118,60 +114,6 @@
       </table>
     </div>
   </div>
-</div>
-
-<!-- Lignes/Points JSON pour JS -->
-<script th:inline="javascript">
-  var lignesData = {};
-  /*[# th:each="l : ${lignes}"]*/
-  lignesData[/*[[${l.id}]]*/0] = [];
-  /*[# th:each="p : ${l.points}"]*/
-  lignesData[/*[[${l.id}]]*/0].push({id: /*[[${p.id}]]*/0, nom: /*[[${p.nomLieu}]]*/'', ordre: /*[[${p.ordrePassage}]]*/0});
-  /*[/]*/
-  /*[/]*/
-
-  function chargerPoints(ligneId) {
-    var points = lignesData[ligneId] || [];
-    var depart = document.getElementById('departSelect');
-    var arrivee = document.getElementById('arriveeSelect');
-    depart.innerHTML = '<option value="">-- Départ --</option>';
-    arrivee.innerHTML = '<option value="">-- Arrivée --</option>';
-    points.forEach(function(p) {
-      depart.innerHTML += '<option value="' + p.id + '">' + p.nom + '</option>';
-      arrivee.innerHTML += '<option value="' + p.id + '">' + p.nom + '</option>';
-    });
-  }
-</script>
-
-<!-- WebSocket pour les conducteurs -->
-<div th:if="${utilisateur.estConducteur}">
-  <script th:src="@{/webjars/sockjs-client/1.5.1/sockjs.min.js}"></script>
-  <script th:src="@{/webjars/stomp-websocket/2.3.4/stomp.min.js}"></script>
-  <script th:inline="javascript">
-    var socket = new SockJS('/ws');
-    var stompClient = Stomp.over(socket);
-    stompClient.connect({}, function() {
-      stompClient.subscribe('/user/queue/alertes', function(message) {
-        var data = JSON.parse(message.body);
-        var container = document.getElementById('alertes-container');
-        var html = '<div class="alert alert-warning alert-dismissible fade show">' +
-          '<strong>' + data.nomPassager + '</strong> attend de ' +
-          '<em>' + data.pointDepart + '</em> vers <em>' + data.pointArrivee + '</em>' +
-          (data.notePassager ? ' — Note: ' + data.notePassager.toFixed(1) + '/5' : '') +
-          '<div class="mt-2">' +
-          '<form action="/demandes/' + data.demandeId + '/accepter" method="post" style="display:inline">' +
-          '<button type="submit" class="btn btn-sm btn-success me-2">Accepter</button>' +
-          '</form>' +
-          '</div>' +
-          '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
-          '</div>';
-        container.innerHTML = html + container.innerHTML;
-      });
-      stompClient.subscribe('/user/queue/annulations', function(message) {
-        alert(message.body);
-      });
-    });
-  </script>
 </div>
 
 <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>

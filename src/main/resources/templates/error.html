@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title th:text="${status} + ' - CovoURCA'">Erreur – CovoURCA</title>
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}"/>
+  <style>
+    :root {
+      --amber: #78350f;
+      --amber-hover: #92400e;
+      --amber-50: #fffbeb;
+      --stone-50: #fafaf9;
+      --stone-100: #f5f5f4;
+      --stone-200: #e7e5e4;
+      --stone-600: #57534e;
+      --stone-900: #1c1917;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(36px); } to { opacity: 1; transform: translateY(0); } }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--stone-50); min-height: 100vh; animation: fadeIn 0.5s ease; }
+    .covo-nav { background: #fff; border-bottom: 1px solid var(--stone-200); padding: 0.65rem 0; box-shadow: 0 2px 16px rgba(0,0,0,.06); }
+    .covo-logo { display: flex; align-items: center; gap: 0.65rem; text-decoration: none; }
+    .covo-logo img { height: 3.6rem; width: auto; }
+    .covo-logo-text { display: flex; flex-direction: column; line-height: 1.15; }
+    .covo-logo-name { font-weight: 800; font-size: 1.45rem; color: var(--amber); letter-spacing: -0.02em; }
+    .btn-amber { background: var(--amber); color: #fff; border: none; padding: 0.65rem 1.5rem; border-radius: 0.75rem; font-weight: 700; text-decoration: none; display: inline-block; transition: background .2s, transform .15s; }
+    .btn-amber:hover { background: var(--amber-hover); color: #fff; transform: translateY(-2px); box-shadow: 0 8px 22px rgba(120,53,15,.35); }
+    .error-card { background: #fff; border: 1px solid var(--stone-100); border-radius: 1.25rem; box-shadow: 0 20px 60px rgba(0,0,0,.10); animation: slideUp 0.65s ease 0.15s both; max-width: 560px; }
+    .error-code { font-size: 5rem; font-weight: 900; color: var(--amber); line-height: 1; }
+    .covo-footer { background: var(--stone-900); color: #a8a29e; }
+    .covo-footer a { color: #a8a29e; text-decoration: none; transition: color .2s; }
+    .covo-footer a:hover { color: #fff; }
+  </style>
+</head>
+<body>
+
+<nav class="covo-nav">
+  <div class="container d-flex align-items-center justify-content-between">
+    <a th:href="@{/}" class="covo-logo">
+      <img th:src="@{/images/logo.png}" alt="CovoURCA"/>
+      <div class="covo-logo-text">
+        <span class="covo-logo-name">CovoURCA</span>
+      </div>
+    </a>
+  </div>
+</nav>
+
+<div class="min-vh-75 d-flex align-items-center justify-content-center py-5 px-3">
+  <div class="error-card p-5 text-center">
+    <div class="error-code mb-2" th:text="${status}">500</div>
+    <h2 class="fw-bold mb-2" style="color:var(--stone-900);" th:text="${status} == 404 ? 'Page introuvable' : (${status} == 403 ? 'Accès refusé' : 'Une erreur est survenue')">Erreur</h2>
+    <p class="mb-4" style="color:var(--stone-600);" th:text="${status} == 404 ? 'La page que vous cherchez n\'existe pas.' : (${status} == 403 ? 'Vous n\'avez pas les droits pour accéder à cette page.' : 'Nous rencontrons un problème technique. Veuillez réessayer plus tard.')">Message</p>
+    <a th:href="@{/}" class="btn-amber px-4 py-2">Retour à l'accueil</a>
+  </div>
+</div>
+
+<footer class="covo-footer py-4">
+  <div class="container text-center">
+    <p class="mb-0 small">© 2026 CovoURCA — Université de Reims Champagne-Ardenne</p>
+  </div>
+</footer>
+
+<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>
