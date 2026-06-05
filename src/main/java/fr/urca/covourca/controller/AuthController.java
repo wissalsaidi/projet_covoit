@@ -49,4 +49,14 @@ public class AuthController {
     public String connexionForm() {
         return "auth/connexion";
     }
+
+    @GetMapping("/confidentialite")
+    public String confidentialite() {
+        return "confidentialite";
+    }
+
+    @GetMapping("/conditions")
+    public String conditions() {
+        return "conditions";
+    }
 }

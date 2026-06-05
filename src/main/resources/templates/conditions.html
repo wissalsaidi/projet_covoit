@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Conditions d'utilisation – CovoURCA</title>
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}"/>
+  <style>
+    :root {
+      --amber: #78350f;
+      --amber-hover: #92400e;
+      --amber-50: #fffbeb;
+      --stone-50: #fafaf9;
+      --stone-100: #f5f5f4;
+      --stone-200: #e7e5e4;
+      --stone-600: #57534e;
+      --stone-900: #1c1917;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(36px); } to { opacity: 1; transform: translateY(0); } }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--stone-50); min-height: 100vh; animation: fadeIn 0.5s ease; }
+    .covo-nav { background: #fff; border-bottom: 1px solid var(--stone-200); padding: 0.65rem 0; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 16px rgba(0,0,0,.06); }
+    .covo-logo { display: flex; align-items: center; gap: 0.65rem; text-decoration: none; }
+    .covo-logo img { height: 3.6rem; width: auto; transition: transform .3s; }
+    .covo-logo:hover img { transform: scale(1.07); }
+    .covo-logo-text { display: flex; flex-direction: column; line-height: 1.15; }
+    .covo-logo-name { font-weight: 800; font-size: 1.45rem; color: var(--amber); letter-spacing: -0.02em; }
+    .covo-logo-sub { font-weight: 500; font-size: 0.68rem; color: var(--stone-600); letter-spacing: 0.03em; text-transform: uppercase; }
+    .btn-amber { background: var(--amber); color: #fff; border: none; padding: 0.65rem 1.5rem; border-radius: 0.75rem; font-weight: 700; font-size: 0.9rem; text-decoration: none; display: inline-block; transition: background .2s, transform .15s, box-shadow .2s; }
+    .btn-amber:hover { background: var(--amber-hover); color: #fff; transform: translateY(-2px); box-shadow: 0 8px 22px rgba(120,53,15,.35); }
+    .btn-outline-amber { background: #fff; color: var(--amber); border: 2px solid #fde68a; padding: 0.65rem 1.5rem; border-radius: 0.75rem; font-weight: 700; font-size: 0.9rem; text-decoration: none; display: inline-block; transition: background .2s, border-color .2s, transform .15s; }
+    .btn-outline-amber:hover { background: var(--amber-50); color: var(--amber); border-color: var(--amber); transform: translateY(-2px); }
+    .content-card { background: #fff; border: 1px solid var(--stone-100); border-radius: 1.25rem; box-shadow: 0 20px 60px rgba(0,0,0,.10); animation: slideUp 0.65s ease 0.15s both; }
+    .content-card h2 { color: var(--stone-900); font-weight: 800; font-size: 1.4rem; margin-top: 2rem; }
+    .content-card h2:first-child { margin-top: 0; }
+    .content-card h3 { color: var(--amber); font-weight: 700; font-size: 1.1rem; margin-top: 1.5rem; }
+    .content-card p, .content-card li { color: var(--stone-600); line-height: 1.7; }
+    .covo-footer { background: var(--stone-900); color: #a8a29e; }
+    .covo-footer a { color: #a8a29e; text-decoration: none; transition: color .2s; }
+    .covo-footer a:hover { color: #fff; }
+  </style>
+</head>
+<body>
+
+<nav class="covo-nav anim-fade">
+  <div class="container d-flex align-items-center justify-content-between">
+    <a th:href="@{/}" class="covo-logo">
+      <img th:src="@{/images/logo.png}" alt="CovoURCA"/>
+      <div class="covo-logo-text">
+        <span class="covo-logo-name">CovoURCA</span>
+      </div>
+    </a>
+    <div class="d-flex gap-2">
+      <a th:href="@{/connexion}"  class="btn-outline-amber">Se connecter</a>
+      <a th:href="@{/inscription}" class="btn-amber">S'inscrire</a>
+    </div>
+  </div>
+</nav>
+
+<div class="py-5 px-3">
+  <div class="mx-auto w-100" style="max-width: 860px;">
+    <div class="content-card p-4 p-sm-5">
+      <h1 class="fw-bold" style="color:var(--stone-900);">Conditions d'utilisation</h1>
+      <p class="small" style="color:var(--stone-600);">Dernière mise à jour : juin 2026</p>
+
+      <h2>1. Acceptation des conditions</h2>
+      <p>En créant un compte et en utilisant CovoURCA, vous acceptez pleinement les présentes conditions d'utilisation. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser nos services.</p>
+
+      <h2>2. Définition des rôles</h2>
+      <ul>
+        <li><strong>Conducteur :</strong> utilisateur proposant un trajet à bord de son véhicule personnel.</li>
+        <li><strong>Passager :</strong> utilisateur recherchant un trajet proposé par un conducteur.</li>
+      </ul>
+
+      <h2>3. Inscription et compte</h2>
+      <p>L'inscription est réservée aux membres de la communauté universitaire (étudiants, personnels). Vous vous engagez à fournir des informations exactes et à ne pas partager vos identifiants de connexion.</p>
+
+      <h2>4. Utilisation du service</h2>
+      <ul>
+        <li>Les conducteurs s'engagent à respecter le code de la route et à conduire en toute sécurité.</li>
+        <li>Les passagers s'engagent à adopter un comportement respectueux.</li>
+        <li>Le covoiturage est organisé à titre bénévole ; aucune transaction financière n'est gérée via la plateforme.</li>
+        <li>Il est interdit de publier de fausses annonces ou d'utiliser le service à des fins frauduleuses.</li>
+      </ul>
+
+      <h2>5. Code de confirmation</h2>
+      <p>Un code à 4 chiffres est généré pour chaque trajet accepté. Ce code permet de confirmer la prise en charge du passager et doit être communiqué uniquement au conducteur concerné.</p>
+
+      <h2>6. Système de notation</h2>
+      <p>Les utilisateurs peuvent évaluer leurs trajets. Les notes abusives ou frauduleuses peuvent entraîner la suspension du compte.</p>
+
+      <h2>7. Responsabilité</h2>
+      <p>CovoURCA est une plateforme de mise en relation. La responsabilité de la plateforme ne saurait être engagée en cas d'incident survenu pendant un trajet. Les conducteurs doivent être en possession d'un permis de conduire valide et d'une assurance automobile en cours.</p>
+
+      <h2>8. Suspension et résiliation</h2>
+      <p>Nous nous réservons le droit de suspendre ou résilier tout compte en cas de non-respect des présentes conditions, de comportement inapproprié ou d'utilisation frauduleuse du service.</p>
+
+      <h2>9. Modification des conditions</h2>
+      <p>Les conditions d'utilisation peuvent être modifiées à tout moment. Les utilisateurs seront informés des changements importants par email ou par une notification sur la plateforme.</p>
+    </div>
+  </div>
+</div>
+
+<footer class="covo-footer py-5">
+  <div class="container text-center">
+    <p class="mb-3">© 2026 CovoURCA — Université de Reims Champagne-Ardenne — Module RT0809</p>
+    <div class="d-flex justify-content-center gap-4 flex-wrap">
+      <a th:href="@{/confidentialite}">Politique de confidentialité</a>
+      <a th:href="@{/conditions}">Conditions d'utilisation</a>
+      <a href="mailto:support@covourca.fr">Support</a>
+    </div>
+  </div>
+</footer>
+
+<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>
