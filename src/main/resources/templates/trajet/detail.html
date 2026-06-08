@@ -5,128 +5,337 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Trajet – CovoURCA</title>
   <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" th:href="@{/css/covourca.css}"/>
+  <style>
+    #tripMap { height: 180px; width: 100%; }
+    .info-row { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid var(--stone-100); }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { font-size: 0.78rem; font-weight: 600; color: var(--stone-400); text-transform: uppercase; letter-spacing: 0.06em; min-width: 90px; margin-top: 0.1rem; }
+    .info-val { font-size: 0.95rem; color: var(--stone-900); font-weight: 500; }
+    .code-input { font-size: 2rem; font-weight: 900; text-align: center; letter-spacing: 0.4em; border-radius: var(--radius); border: 2px solid var(--stone-300); padding: 0.75rem; width: 100%; }
+    .code-input:focus { border-color: var(--amber); box-shadow: 0 0 0 3px rgba(120,53,15,.12); outline: none; }
+    .partner-card { background: var(--stone-50); border: 1px solid var(--stone-200); border-radius: var(--radius); padding: 1rem; display: flex; align-items: center; gap: 0.85rem; }
+    .partner-avatar { width: 3rem; height: 3rem; border-radius: 50%; background: var(--amber); color: #fff; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  </style>
 </head>
-<body class="bg-light">
+<body class="anim-fade">
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<div class="container py-4" style="max-width:700px">
-  <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-  <div th:if="${erreur}" class="alert alert-danger" th:text="${erreur}"></div>
-
-  <div class="card shadow-sm">
-    <div class="card-header fw-bold text-white" style="background:#8B6914;">Détail du trajet</div>
-    <div class="card-body">
-      <div class="row mb-3">
-        <div class="col-6">
-          <p class="text-muted mb-1">Départ</p>
-          <strong th:text="${trajet.demande.pointDepart.nomLieu}"></strong>
-        </div>
-        <div class="col-6">
-          <p class="text-muted mb-1">Arrivée</p>
-          <strong th:text="${trajet.demande.pointArrivee.nomLieu}"></strong>
-        </div>
-      </div>
-      <div class="row mb-3">
-        <div class="col-6">
-          <p class="text-muted mb-1">Conducteur</p>
-          <span th:text="${trajet.conducteur.prenom + ' ' + trajet.conducteur.nom}"></span>
-        </div>
-        <div class="col-6">
-          <p class="text-muted mb-1">Passager</p>
-          <span th:text="${trajet.passager.prenom + ' ' + trajet.passager.nom}"></span>
-        </div>
-      </div>
-      <div class="row mb-3">
-        <div class="col-6">
-          <p class="text-muted mb-1">Statut</p>
-          <span class="badge fs-6"
-                th:classappend="${trajet.statut.name() == 'EN_COURS'} ? 'bg-primary' : (${trajet.statut.name() == 'TERMINE'} ? 'bg-success' : 'bg-danger')"
-                th:text="${trajet.statut}"></span>
-        </div>
-        <div class="col-6" th:if="${trajet.vehicule != null}">
-          <p class="text-muted mb-1">Véhicule</p>
-          <span th:text="${trajet.vehicule.marque + ' ' + trajet.vehicule.modele + ' (' + trajet.vehicule.couleur + ')'}"></span>
-        </div>
-      </div>
-
-      <!-- Code d'échange : visible par le passager -->
-      <div th:if="${utilisateur.id == trajet.passager.id and trajet.statut.name() == 'EN_COURS'}"
-           class="alert alert-info text-center mt-3">
-        <p class="mb-1">Votre code à communiquer au conducteur :</p>
-        <h1 class="display-4 fw-bold letter-spacing-wide" th:text="${trajet.identifiantEchange}"
-            style="letter-spacing:0.3em;"></h1>
-      </div>
-
-      <!-- Saisie du code : visible par le conducteur -->
-      <div th:if="${utilisateur.id == trajet.conducteur.id and trajet.statut.name() == 'EN_COURS'}" class="mt-3">
-        <form th:action="@{/trajets/{id}/confirmer-code(id=${trajet.id})}" method="post" class="row g-2 align-items-end">
-          <div class="col-8">
-            <label class="form-label">Saisir le code du passager</label>
-            <input type="text" class="form-control form-control-lg text-center" name="code"
-                   maxlength="4" pattern="[0-9]{4}" placeholder="0000" required/>
-          </div>
-          <div class="col-4">
-            <button type="submit" class="btn text-white w-100" style="background:#8B6914;">Confirmer</button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Actions conducteur -->
-      <div th:if="${utilisateur.id == trajet.conducteur.id and trajet.statut.name() == 'EN_COURS'}"
-           class="d-flex gap-2 mt-3">
-        <form th:action="@{/trajets/{id}/terminer(id=${trajet.id})}" method="post">
-          <button type="submit" class="btn btn-success">Terminer le trajet</button>
-        </form>
-        <form th:action="@{/trajets/{id}/annuler(id=${trajet.id})}" method="post">
-          <button type="submit" class="btn btn-outline-danger">Annuler</button>
-        </form>
-      </div>
-
-      <!-- Notation -->
-      <div th:if="${trajet.statut.name() == 'TERMINE' and !dejaNote}" class="mt-4 border-top pt-3">
-        <h6 class="fw-bold">Noter votre partenaire</h6>
-        <form th:action="@{/notations/{id}(id=${trajet.id})}" method="post">
-          <div class="mb-2">
-            <label class="form-label">Note (1–5 étoiles)</label>
-            <select name="valeur" class="form-select w-auto">
-              <option value="5">⭐⭐⭐⭐⭐ — Excellent</option>
-              <option value="4">⭐⭐⭐⭐ — Très bien</option>
-              <option value="3" selected>⭐⭐⭐ — Bien</option>
-              <option value="2">⭐⭐ — Passable</option>
-              <option value="1">⭐ — Insuffisant</option>
-            </select>
-          </div>
-          <div class="mb-2">
-            <label class="form-label">Commentaire (optionnel)</label>
-            <input type="text" name="commentaire" class="form-control" placeholder="Un mot sur ce trajet..."/>
-          </div>
-          <button type="submit" class="btn btn-warning fw-semibold">Envoyer la note</button>
-        </form>
-      </div>
-      <div th:if="${trajet.statut.name() == 'TERMINE' and dejaNote}"
-           class="mt-3 alert alert-secondary">
-        Vous avez déjà noté ce trajet.
+<!-- Page header -->
+<div class="page-header">
+  <div class="container">
+    <div class="d-flex align-items-center gap-3">
+      <a th:href="@{/dashboard}" class="btn-ghost" style="padding:0.4rem 0.75rem;">
+        <i class="bi bi-arrow-left"></i> Retour
+      </a>
+      <div>
+        <h1>Détail du trajet</h1>
+        <p class="subtitle">
+          <span th:text="${trajet.demande.pointDepart.nomLieu}"></span>
+          <i class="bi bi-arrow-right mx-1"></i>
+          <span th:text="${trajet.demande.pointArrivee.nomLieu}"></span>
+        </p>
       </div>
     </div>
   </div>
-
-  <a th:href="@{/dashboard}" class="btn btn-outline-secondary mt-3">← Retour au dashboard</a>
 </div>
 
-<!-- WebSocket pour annulation en temps réel -->
+<div class="container py-4" style="max-width:760px;">
+
+  <!-- Flash messages -->
+  <div th:if="${success}" class="alert-covo alert-covo-success mb-3">
+    <i class="bi bi-check-circle-fill"></i><span th:text="${success}"></span>
+  </div>
+  <div th:if="${erreur}" class="alert-covo alert-covo-danger mb-3">
+    <i class="bi bi-exclamation-circle-fill"></i><span th:text="${erreur}"></span>
+  </div>
+
+  <!-- Trip status bar -->
+  <div class="trip-status-bar mb-4 anim-up">
+    <div class="trip-status-step done"><i class="bi bi-check-circle me-1"></i>Demandé</div>
+    <div class="trip-status-step" th:classappend="${trajet.statut.name() == 'EN_COURS'} ? ' active' : (${trajet.statut.name() == 'TERMINE' or trajet.statut.name() == 'ANNULE'} ? ' done' : '')">
+      <i class="bi bi-car-front me-1"></i>En cours
+    </div>
+    <div class="trip-status-step" th:classappend="${trajet.statut.name() == 'TERMINE'} ? ' active' : (${trajet.statut.name() == 'ANNULE'} ? ' done' : '')">
+      <i th:class="${trajet.statut.name() == 'ANNULE'} ? 'bi bi-x-circle me-1' : 'bi bi-flag-fill me-1'"></i>
+      <span th:text="${trajet.statut.name() == 'ANNULE'} ? 'Annulé' : 'Terminé'">Terminé</span>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- ── Trip Info card ── -->
+    <div class="col-md-7">
+      <div class="covo-card anim-up d1">
+        <div class="covo-card-header">
+          <h5><div class="card-icon"><i class="bi bi-signpost-2"></i></div> Informations</h5>
+          <span class="badge-blue"   th:if="${trajet.statut.name() == 'EN_COURS'}">En cours</span>
+          <span class="badge-green"  th:if="${trajet.statut.name() == 'TERMINE'}">Terminé</span>
+          <span class="badge-red"    th:if="${trajet.statut.name() == 'ANNULE'}">Annulé</span>
+        </div>
+        <div class="covo-card-body">
+
+          <!-- Mini map -->
+          <div class="map-container mb-3">
+            <div id="tripMap"></div>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label"><i class="bi bi-geo-alt-fill text-danger me-1"></i>Départ</span>
+            <span class="info-val" th:text="${trajet.demande.pointDepart.nomLieu}"></span>
+          </div>
+          <div class="info-row">
+            <span class="info-label"><i class="bi bi-flag-fill text-success me-1"></i>Arrivée</span>
+            <span class="info-val" th:text="${trajet.demande.pointArrivee.nomLieu}"></span>
+          </div>
+          <div class="info-row" th:if="${trajet.vehicule != null}">
+            <span class="info-label"><i class="bi bi-car-front me-1"></i>Véhicule</span>
+            <span class="info-val" th:text="${trajet.vehicule.marque + ' ' + trajet.vehicule.modele + ' · ' + trajet.vehicule.couleur}"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contribution suggérée (informatif) -->
+      <div class="covo-card mt-4 anim-up d2" th:if="${trajet.statut.name() == 'TERMINE'}">
+        <div class="covo-card-header">
+          <h5><div class="card-icon purple"><i class="bi bi-wallet2"></i></div> Contribution</h5>
+          <span class="badge-gray">À régler en main propre</span>
+        </div>
+        <div class="covo-card-body">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <div class="fw-bold" style="font-size:1.4rem; color:var(--amber);">€ 2,00</div>
+              <div class="form-hint">Contribution suggérée par trajet</div>
+            </div>
+            <div class="stat-icon" style="width:3.5rem;height:3.5rem;font-size:1.4rem;"><i class="bi bi-wallet2"></i></div>
+          </div>
+          <div th:if="${utilisateur.id == trajet.passager.id}" class="alert-covo alert-covo-info mt-3">
+            <i class="bi bi-info-circle"></i>
+            <span>Pensez à remettre €2,00 au conducteur en main propre.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Right column ── -->
+    <div class="col-md-5">
+
+      <!-- Partner card -->
+      <div class="covo-card anim-up d1">
+        <div class="covo-card-header">
+          <h5><div class="card-icon blue"><i class="bi bi-people-fill"></i></div> Partenaire</h5>
+        </div>
+        <div class="covo-card-body">
+          <!-- Conductor info (shown to passenger) -->
+          <div th:if="${utilisateur.id == trajet.passager.id}">
+            <div class="partner-card mb-3">
+              <div class="partner-avatar" th:text="${#strings.substring(trajet.conducteur.prenom,0,1).toUpperCase()}">C</div>
+              <div>
+                <div class="fw-bold" th:text="${trajet.conducteur.prenom + ' ' + trajet.conducteur.nom}"></div>
+                <div class="small" style="color:var(--stone-600);">Conducteur</div>
+                <div th:if="${trajet.conducteur.noteMoyenne != null}" class="small" style="color:#f59e0b;">
+                  <span th:each="i : ${#numbers.sequence(1, 5)}">
+                    <i th:class="${i <= trajet.conducteur.noteMoyenne} ? 'bi bi-star-fill' : 'bi bi-star'" style="font-size:0.75rem;"></i>
+                  </span>
+                  <span th:text="' ' + #numbers.formatDecimal(trajet.conducteur.noteMoyenne,1,1)"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Passenger info (shown to driver) -->
+          <div th:if="${utilisateur.id == trajet.conducteur.id}">
+            <div class="partner-card mb-3">
+              <div class="partner-avatar" th:text="${#strings.substring(trajet.passager.prenom,0,1).toUpperCase()}">P</div>
+              <div>
+                <div class="fw-bold" th:text="${trajet.passager.prenom + ' ' + trajet.passager.nom}"></div>
+                <div class="small" style="color:var(--stone-600);">Passager</div>
+                <div th:if="${trajet.passager.noteMoyenne != null}" class="small" style="color:#f59e0b;">
+                  <span th:each="i : ${#numbers.sequence(1, 5)}">
+                    <i th:class="${i <= trajet.passager.noteMoyenne} ? 'bi bi-star-fill' : 'bi bi-star'" style="font-size:0.75rem;"></i>
+                  </span>
+                  <span th:text="' ' + #numbers.formatDecimal(trajet.passager.noteMoyenne,1,1)"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Code exchange (EN_COURS only) -->
+      <div class="covo-card mt-4 anim-up d2" th:if="${trajet.statut.name() == 'EN_COURS'}">
+        <div class="covo-card-header">
+          <h5><div class="card-icon"><i class="bi bi-key-fill"></i></div> Code d'échange</h5>
+        </div>
+        <div class="covo-card-body">
+
+          <!-- Passenger sees the code -->
+          <div th:if="${utilisateur.id == trajet.passager.id}">
+            <p class="form-hint mb-2">Communiquez ce code au conducteur :</p>
+            <div class="code-display">
+              <div class="code-digits" th:text="${trajet.identifiantEchange}">0000</div>
+            </div>
+          </div>
+
+          <!-- Driver enters the code -->
+          <div th:if="${utilisateur.id == trajet.conducteur.id}">
+            <p class="form-hint mb-3">Saisissez le code que le passager vous donne :</p>
+            <form th:action="@{/trajets/{id}/confirmer-code(id=${trajet.id})}" method="post">
+              <input type="text" class="code-input" name="code"
+                     maxlength="4" pattern="[0-9]{4}" placeholder="0000" required
+                     inputmode="numeric" autocomplete="off"/>
+              <button type="submit" class="btn-amber w-100 mt-3" style="justify-content:center;">
+                <i class="bi bi-check-circle"></i> Confirmer le code
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Driver actions -->
+      <div class="covo-card mt-4 anim-up d3" th:if="${utilisateur.id == trajet.conducteur.id and trajet.statut.name() == 'EN_COURS'}">
+        <div class="covo-card-header">
+          <h5><div class="card-icon green"><i class="bi bi-gear-fill"></i></div> Actions</h5>
+        </div>
+        <div class="covo-card-body d-flex flex-column gap-2">
+          <form th:action="@{/trajets/{id}/terminer(id=${trajet.id})}" method="post">
+            <button type="submit" class="btn-success w-100" style="justify-content:center;">
+              <i class="bi bi-flag-fill"></i> Terminer le trajet
+            </button>
+          </form>
+          <form th:action="@{/trajets/{id}/annuler(id=${trajet.id})}" method="post">
+            <button type="submit" class="btn-danger w-100" style="justify-content:center;" onclick="return confirm('Confirmer l\'annulation ?')">
+              <i class="bi bi-x-circle"></i> Annuler le trajet
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Rating section -->
+      <div class="covo-card mt-4 anim-up d3" th:if="${trajet.statut.name() == 'TERMINE'}">
+        <div class="covo-card-header">
+          <h5><div class="card-icon" style="background:#fef9c3;color:#ca8a04;"><i class="bi bi-star-fill"></i></div> Notation</h5>
+        </div>
+        <div class="covo-card-body">
+          <div th:if="${dejaNote}" class="alert-covo alert-covo-success">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>Vous avez déjà noté ce trajet.</span>
+          </div>
+
+          <div th:if="${!dejaNote}">
+            <p class="form-hint mb-3">Comment s'est passé ce trajet ?</p>
+            <form th:action="@{/notations/{id}(id=${trajet.id})}" method="post" id="ratingForm">
+              <!-- Interactive star picker -->
+              <div class="mb-3">
+                <label class="form-label">Votre note</label>
+                <div class="star-picker" id="starPicker">
+                  <span class="star" data-val="1"><i class="bi bi-star-fill"></i></span>
+                  <span class="star" data-val="2"><i class="bi bi-star-fill"></i></span>
+                  <span class="star" data-val="3"><i class="bi bi-star-fill"></i></span>
+                  <span class="star" data-val="4"><i class="bi bi-star-fill"></i></span>
+                  <span class="star" data-val="5"><i class="bi bi-star-fill"></i></span>
+                </div>
+                <input type="hidden" name="valeur" id="ratingValue" value="3"/>
+                <div class="form-hint mt-1" id="ratingLabel">Bien (3/5)</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Commentaire <span class="fw-normal" style="color:var(--stone-400);">(optionnel)</span></label>
+                <input type="text" name="commentaire" class="form-control" placeholder="Un mot sur ce trajet…" maxlength="200"/>
+              </div>
+              <button type="submit" class="btn-amber w-100" style="justify-content:center;">
+                <i class="bi bi-send-fill"></i> Envoyer la note
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="app-footer">
+  <div class="container text-center">
+    <p class="mb-0">© 2026 CovoURCA</p>
+  </div>
+</footer>
+
+<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
 <script th:src="@{/webjars/sockjs-client/1.5.1/sockjs.min.js}"></script>
 <script th:src="@{/webjars/stomp-websocket/2.3.4/stomp.min.js}"></script>
-<script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script th:inline="javascript">
+  /* ─── Mini trip map ─── */
+  var deptLat  = /*[[${trajet.demande.pointDepart.latitude}]]*/ 49.25;
+  var deptLng  = /*[[${trajet.demande.pointDepart.longitude}]]*/ 4.03;
+  var arrvLat  = /*[[${trajet.demande.pointArrivee.latitude}]]*/ 49.26;
+  var arrvLng  = /*[[${trajet.demande.pointArrivee.longitude}]]*/ 4.03;
+  var deptNom  = /*[[${trajet.demande.pointDepart.nomLieu}]]*/ 'Départ';
+  var arrvNom  = /*[[${trajet.demande.pointArrivee.nomLieu}]]*/ 'Arrivée';
+
+  var map = L.map('tripMap').setView([(deptLat+arrvLat)/2, (deptLng+arrvLng)/2], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap', maxZoom: 18
+  }).addTo(map);
+
+  var redIcon = L.divIcon({ className: '',
+    html: '<div style="width:14px;height:14px;border-radius:50%;background:#dc2626;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);"></div>',
+    iconSize: [14,14], iconAnchor: [7,7]
+  });
+  var greenIcon = L.divIcon({ className: '',
+    html: '<div style="width:14px;height:14px;border-radius:50%;background:#16a34a;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);"></div>',
+    iconSize: [14,14], iconAnchor: [7,7]
+  });
+
+  L.marker([deptLat, deptLng], {icon: redIcon}).addTo(map).bindTooltip(deptNom, {permanent: true, direction: 'top', offset: [0,-10]});
+  L.marker([arrvLat, arrvLng], {icon: greenIcon}).addTo(map).bindTooltip(arrvNom, {permanent: true, direction: 'top', offset: [0,-10]});
+  L.polyline([[deptLat,deptLng],[arrvLat,arrvLng]], {color:'#78350f', weight:3, dashArray:'6,4'}).addTo(map);
+  map.fitBounds([[deptLat,deptLng],[arrvLat,arrvLng]], {padding:[30,40]});
+
+  /* ─── Star rating ─── */
+  var labels = ['', 'Insuffisant (1/5)', 'Passable (2/5)', 'Bien (3/5)', 'Très bien (4/5)', 'Excellent (5/5)'];
+  var currentVal = 3;
+
+  function updateStars(val) {
+    currentVal = val;
+    document.getElementById('ratingValue').value = val;
+    document.getElementById('ratingLabel').textContent = labels[val];
+    document.querySelectorAll('.star-picker .star').forEach(function(s, i) {
+      s.classList.toggle('active', i < val);
+    });
+  }
+
+  document.querySelectorAll('.star-picker .star').forEach(function(star) {
+    star.addEventListener('click', function() { updateStars(parseInt(this.dataset.val)); });
+    star.addEventListener('mouseenter', function() {
+      var v = parseInt(this.dataset.val);
+      document.querySelectorAll('.star-picker .star').forEach(function(s, i) {
+        s.classList.toggle('active', i < v);
+      });
+    });
+  });
+  document.querySelector('.star-picker') && document.querySelector('.star-picker').addEventListener('mouseleave', function() {
+    updateStars(currentVal);
+  });
+  updateStars(3);
+
+  /* ─── WebSocket for cancellation ─── */
   var socket = new SockJS('/ws');
   var stompClient = Stomp.over(socket);
+  stompClient.debug = null;
   stompClient.connect({}, function() {
     stompClient.subscribe('/user/queue/annulations', function(message) {
-      document.body.insertAdjacentHTML('afterbegin',
-        '<div class="alert alert-danger alert-dismissible fade show m-2">' +
-        message.body + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
+      var banner = '<div class="alert-covo alert-covo-danger" style="position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:9999;max-width:420px;box-shadow:var(--shadow-lg);">' +
+        '<i class="bi bi-exclamation-triangle-fill"></i>' +
+        '<div><div class="fw-bold">Trajet annulé</div><div class="small">' + message.body + '</div></div>' +
+      '</div>';
+      document.body.insertAdjacentHTML('afterbegin', banner);
+      setTimeout(function(){ location.reload(); }, 3000);
     });
   });
 </script>
-<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
 </body>
 </html>
