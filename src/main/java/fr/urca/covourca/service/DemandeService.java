@@ -84,7 +84,20 @@ public class DemandeService {
             .identifiantEchange(code)
             .build();
 
-        return trajetRepository.save(trajet);
+        Trajet saved = trajetRepository.save(trajet);
+
+        // Notify passenger in real time that their request was accepted
+        messagingTemplate.convertAndSendToUser(
+            demande.getPassager().getEmail(),
+            "/queue/acceptations",
+            java.util.Map.of(
+                "trajetId", saved.getId(),
+                "conducteurNom", conducteur.getPrenom() + " " + conducteur.getNom(),
+                "vehicule", vehicule.getMarque() + " " + vehicule.getModele() + " (" + vehicule.getCouleur() + ")"
+            )
+        );
+
+        return saved;
     }
 
     @Transactional

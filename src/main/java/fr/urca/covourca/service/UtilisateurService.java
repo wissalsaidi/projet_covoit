@@ -2,8 +2,10 @@ package fr.urca.covourca.service;
 
 import fr.urca.covourca.dto.InscriptionDto;
 import fr.urca.covourca.dto.VehiculeDto;
+import fr.urca.covourca.model.Ligne;
 import fr.urca.covourca.model.Utilisateur;
 import fr.urca.covourca.model.Vehicule;
+import fr.urca.covourca.repository.LigneRepository;
 import fr.urca.covourca.repository.NotationRepository;
 import fr.urca.covourca.repository.UtilisateurRepository;
 import fr.urca.covourca.repository.VehiculeRepository;
@@ -12,6 +14,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UtilisateurService {
@@ -19,6 +24,7 @@ public class UtilisateurService {
     private final UtilisateurRepository utilisateurRepository;
     private final VehiculeRepository vehiculeRepository;
     private final NotationRepository notationRepository;
+    private final LigneRepository ligneRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
@@ -67,6 +73,21 @@ public class UtilisateurService {
     public void mettreAJourNoteMoyenne(Utilisateur u) {
         Double moyenne = notationRepository.calculerMoyenne(u);
         u.setNoteMoyenne(moyenne);
+        utilisateurRepository.save(u);
+    }
+
+    @Transactional
+    public void updateLignes(Utilisateur u, List<Long> ligneIds) {
+        List<Ligne> lignes = ligneIds.isEmpty() ? List.of() : ligneRepository.findAllById(ligneIds);
+        u.setLignes(new java.util.ArrayList<>(lignes));
+        utilisateurRepository.save(u);
+    }
+
+    @Transactional
+    public void updateInfos(Utilisateur u, String nom, String prenom, String telephone) {
+        u.setNom(nom);
+        u.setPrenom(prenom);
+        u.setTelephone(telephone);
         utilisateurRepository.save(u);
     }
 

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +29,9 @@ public class DashboardController {
     public String dashboard(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         Utilisateur u = utilisateurService.findByEmail(userDetails.getUsername());
         model.addAttribute("utilisateur", u);
+        // Safe pre-computation: triggers lazy load here (OSIV session open) instead of mid-render
+        boolean conducteurSansLignes = u.isEstConducteur() && u.getLignes().isEmpty();
+        model.addAttribute("conducteurSansLignes", conducteurSansLignes);
 
         // Demande en cours du passager
         Optional<DemandeCovoiturage> demandeEnCours =
@@ -43,12 +47,12 @@ public class DashboardController {
         model.addAttribute("trajetEnCoursConducteur", trajetEnCoursConducteur.orElse(null));
 
         // Derniers trajets
-        List<Trajet> derniersTrajets = trajetRepository.findByPassagerOrderByIdDesc(u);
+        List<Trajet> derniersTrajets = new ArrayList<>(trajetRepository.findByPassagerOrderByIdDesc(u));
         derniersTrajets.addAll(trajetRepository.findByConducteurOrderByIdDesc(u));
         derniersTrajets.sort((a, b) -> b.getId().compareTo(a.getId()));
         model.addAttribute("derniersTrajets", derniersTrajets.stream().limit(5).toList());
 
-        // Lignes disponibles pour la demande
+        // Lignes disponibles pour la demande passager
         model.addAttribute("lignes", ligneRepository.findAll());
 
         return "dashboard/index";
