@@ -37,6 +37,7 @@ public class Utilisateur {
     private String motDePasse;
 
     @Column(name = "est_conducteur")
+    @Builder.Default
     private boolean estConducteur = false;
 
     @Column(name = "telephone")

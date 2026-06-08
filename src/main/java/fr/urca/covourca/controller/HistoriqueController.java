@@ -20,8 +20,12 @@ public class HistoriqueController {
     @GetMapping("/historique")
     public String historique(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         Utilisateur u = utilisateurService.findByEmail(userDetails.getUsername());
-        model.addAttribute("trajets", trajetService.historiqueUtilisateur(u));
+        var trajets = trajetService.historiqueUtilisateur(u);
+        model.addAttribute("trajets", trajets);
         model.addAttribute("utilisateur", u);
+        model.addAttribute("nbTermines",   trajets.stream().filter(t -> t.getStatut().name().equals("TERMINE")).count());
+        model.addAttribute("nbConducteur", trajets.stream().filter(t -> t.getConducteur().getId().equals(u.getId())).count());
+        model.addAttribute("nbPassager",   trajets.stream().filter(t -> t.getPassager().getId().equals(u.getId())).count());
         return "historique";
     }
 }

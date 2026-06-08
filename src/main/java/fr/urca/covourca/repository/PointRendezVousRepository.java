@@ -7,4 +7,8 @@ import java.util.List;
 
 public interface PointRendezVousRepository extends JpaRepository<PointRendezVous, Long> {
     List<PointRendezVous> findByLigneOrderByOrdrePassage(Ligne ligne);
+    List<PointRendezVous> findByLigneIdOrderByOrdrePassage(Long ligneId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT p FROM PointRendezVous p JOIN FETCH p.ligne ORDER BY p.ligne.id, p.ordrePassage")
+    List<PointRendezVous> findAllWithLigne();
 }

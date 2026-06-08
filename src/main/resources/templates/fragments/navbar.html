@@ -2,29 +2,76 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
-<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark" style="background-color:#8B6914;">
-  <div class="container">
-    <a class="navbar-brand fw-bold d-flex align-items-center gap-2" th:href="@{/dashboard}">
-      <img th:src="@{/images/logo.png}" alt="CovoURCA" style="height:2.2rem; width:auto;"/>
-      <span style="color:#F5E6C8;">Covo</span><span style="color:#fff;">URCA</span>
+<nav th:fragment="navbar" class="covo-nav">
+  <div class="container d-flex align-items-center justify-content-between h-100">
+
+    <!-- Logo -->
+    <a th:href="@{/dashboard}" class="covo-logo">
+      <img th:src="@{/images/logo.png}" alt="CovoURCA"/>
+      <span class="covo-logo-name">CovoURCA</span>
     </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navMenu">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item"><a class="nav-link" th:href="@{/dashboard}">Dashboard</a></li>
-        <li class="nav-item"><a class="nav-link" th:href="@{/historique}">Historique</a></li>
-        <li class="nav-item"><a class="nav-link" th:href="@{/profil}">Mon profil</a></li>
-      </ul>
-      <div class="d-flex align-items-center" sec:authorize="isAuthenticated()">
-        <span class="text-light me-3" sec:authentication="name"></span>
-        <form th:action="@{/deconnexion}" method="post">
-          <button type="submit" class="btn btn-outline-light btn-sm">Déconnexion</button>
-        </form>
-      </div>
+
+    <!-- Desktop nav links -->
+    <div class="nav-links d-none d-md-flex">
+      <a th:href="@{/dashboard}"  class="nav-link-item" id="nav-dashboard">
+        <i class="bi bi-speedometer2"></i> Dashboard
+      </a>
+      <a th:href="@{/historique}" class="nav-link-item" id="nav-historique">
+        <i class="bi bi-clock-history"></i> Historique
+      </a>
+      <a th:href="@{/profil}"     class="nav-link-item" id="nav-profil">
+        <i class="bi bi-person-circle"></i> Profil
+      </a>
     </div>
+
+    <!-- User + Logout -->
+    <div class="d-flex align-items-center gap-2" sec:authorize="isAuthenticated()">
+      <a th:href="@{/profil}" class="nav-user d-none d-sm-flex">
+        <div class="nav-avatar" id="navInitial" sec:authentication="name">?</div>
+        <span class="nav-user-name d-none d-lg-inline" sec:authentication="name"></span>
+      </a>
+      <form th:action="@{/deconnexion}" method="post" style="margin:0;">
+        <button type="submit" class="btn-logout">
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="d-none d-sm-inline">Déconnexion</span>
+        </button>
+      </form>
+      <!-- Mobile hamburger -->
+      <button class="d-md-none btn-ghost" type="button"
+              onclick="(function(){ var m=document.getElementById('navMobile'); m.classList.toggle('d-block'); m.classList.toggle('d-none'); })()"
+              aria-label="Menu">
+        <i class="bi bi-list" style="font-size:1.3rem;"></i>
+      </button>
+    </div>
+
   </div>
+
+  <!-- Mobile dropdown (inside nav, always included) -->
+  <div id="navMobile" class="d-none"
+       style="border-top:1px solid var(--stone-200); background:#fff; padding:0.5rem;">
+    <a th:href="@{/dashboard}"  class="nav-link-item d-flex">
+      <i class="bi bi-speedometer2 me-2"></i>Dashboard
+    </a>
+    <a th:href="@{/historique}" class="nav-link-item d-flex">
+      <i class="bi bi-clock-history me-2"></i>Historique
+    </a>
+    <a th:href="@{/profil}"     class="nav-link-item d-flex">
+      <i class="bi bi-person-circle me-2"></i>Profil
+    </a>
+  </div>
+
+  <!-- Inline script to shorten avatar and highlight active link -->
+  <script th:inline="none">
+    (function(){
+      var av = document.getElementById('navInitial');
+      if (av) av.textContent = (av.textContent||'').trim().charAt(0).toUpperCase() || '?';
+      var p = window.location.pathname;
+      [['nav-dashboard','/dashboard'],['nav-historique','/historique'],['nav-profil','/profil']].forEach(function(pair){
+        var el = document.getElementById(pair[0]);
+        if (el && p.startsWith(pair[1])) el.classList.add('active');
+      });
+    })();
+  </script>
 </nav>
 </body>
 </html>

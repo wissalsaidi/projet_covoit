@@ -41,9 +41,11 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
       SPRING_THYMELEAF_CACHE: "false"
+      SPRING_THYMELEAF_PREFIX: "file:/app/templates/"
       SPRING_WEB_RESOURCES_STATIC_LOCATIONS: file:/app/static/,classpath:/static/
     volumes:
       - ./src/main/resources/static:/app/static
+      - ./src/main/resources/templates:/app/templates
     depends_on:
       mysql:
         condition: service_healthy
