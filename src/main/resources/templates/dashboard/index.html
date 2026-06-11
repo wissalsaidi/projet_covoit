@@ -22,6 +22,10 @@
       padding: 1rem 1.25rem;
       display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
     }
+    .mode-toggle { display: flex; gap: 0; border: 1px solid var(--stone-200); border-radius: var(--radius); overflow: hidden; }
+    .mode-btn { flex:1; padding:0.5rem 1rem; border:none; background:#fff; font-size:0.85rem; font-weight:600; color:var(--stone-500); cursor:pointer; transition:all .2s; }
+    .mode-btn:hover { background:var(--stone-50); }
+    .mode-btn.active { background:var(--amber); color:#fff; }
   </style>
 </head>
 <body class="anim-fade">
@@ -131,13 +135,13 @@
               <i class="bi bi-hourglass-split"></i>
               <div>
                 <div class="fw-bold">Demande envoyée — en attente d'un conducteur</div>
-                <div class="small mt-1">
-                  <i class="bi bi-geo-alt-fill text-danger me-1"></i>
-                  <span th:text="${demandeEnCours.pointDepart.nomLieu}"></span>
-                  <i class="bi bi-arrow-right mx-1"></i>
-                  <i class="bi bi-flag-fill text-success me-1"></i>
-                  <span th:text="${demandeEnCours.pointArrivee.nomLieu}"></span>
-                </div>
+                  <div class="small mt-1">
+                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                    <span th:text="${demandeEnCours.departDisplay}"></span>
+                    <i class="bi bi-arrow-right mx-1"></i>
+                    <i class="bi bi-flag-fill text-success me-1"></i>
+                    <span th:text="${demandeEnCours.arriveeDisplay}"></span>
+                  </div>
               </div>
             </div>
             <div class="d-flex align-items-center gap-2 mb-3">
@@ -154,45 +158,90 @@
           <!-- ── New request form ── -->
           <div th:if="${demandeEnCours == null and trajetEnCoursPassager == null}">
 
+            <!-- Mode toggle -->
+            <div class="mode-toggle mb-2">
+              <button type="button" class="mode-btn active" id="modePredefini" onclick="setMode('predefini')">
+                <i class="bi bi-signpost-2"></i> Arrêts
+              </button>
+              <button type="button" class="mode-btn" id="modeLibre" onclick="setMode('libre')">
+                <i class="bi bi-geo-alt"></i> Adresse libre
+              </button>
+            </div>
+
             <!-- Map -->
             <div class="map-container mb-3">
               <div id="map"></div>
             </div>
-            <p class="form-hint mb-3">
+            <p class="form-hint mb-3" id="formHint">
               <i class="bi bi-info-circle me-1"></i>
-              Tapez le nom d'un arrêt ou cliquez directement sur la carte pour sélectionner votre départ.
+              Tapez le nom d'un arrêt ou cliquez sur la carte pour sélectionner votre départ.
             </p>
 
             <form th:action="@{/demandes/nouvelle}" method="post" id="demandeForm">
               <input type="hidden" name="departId"  id="hDepartId"/>
               <input type="hidden" name="arriveeId" id="hArriveeId"/>
+              <input type="hidden" name="departAdresse" id="hDepartAdresse"/>
+              <input type="hidden" name="departLatitude" id="hDepartLat"/>
+              <input type="hidden" name="departLongitude" id="hDepartLng"/>
+              <input type="hidden" name="arriveeAdresse" id="hArriveeAdresse"/>
+              <input type="hidden" name="arriveeLatitude" id="hArriveeLat"/>
+              <input type="hidden" name="arriveeLongitude" id="hArriveeLng"/>
 
-              <!-- Departure autocomplete -->
-              <div class="mb-3">
-                <label class="form-label">
-                  <i class="bi bi-geo-alt-fill text-danger me-1"></i>Point de départ
-                </label>
-                <div class="autocomplete-wrap">
-                  <input type="text" class="form-control" id="departSearch"
-                         placeholder="Tapez ou sélectionnez un arrêt…" autocomplete="off"/>
-                  <ul class="autocomplete-dropdown" id="departDropdown" style="display:none;"></ul>
+              <!-- Predefined stops section -->
+              <div id="predefiniSection">
+                <div class="mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>Point de départ
+                  </label>
+                  <div class="autocomplete-wrap">
+                    <input type="text" class="form-control" id="departSearch"
+                           placeholder="Tapez ou sélectionnez un arrêt…" autocomplete="off"/>
+                    <ul class="autocomplete-dropdown" id="departDropdown" style="display:none;"></ul>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-flag-fill text-success me-1"></i>Destination
+                  </label>
+                  <div class="autocomplete-wrap">
+                    <input type="text" class="form-control" id="arriveeSearch"
+                           placeholder="Sélectionnez d'abord le départ…"
+                           autocomplete="off" disabled/>
+                    <ul class="autocomplete-dropdown" id="arriveeDropdown" style="display:none;"></ul>
+                  </div>
                 </div>
               </div>
 
-              <!-- Arrival autocomplete (disabled until departure chosen) -->
-              <div class="mb-3">
-                <label class="form-label">
-                  <i class="bi bi-flag-fill text-success me-1"></i>Destination
-                </label>
-                <div class="autocomplete-wrap">
-                  <input type="text" class="form-control" id="arriveeSearch"
-                         placeholder="Sélectionnez d'abord le départ…"
-                         autocomplete="off" disabled/>
-                  <ul class="autocomplete-dropdown" id="arriveeDropdown" style="display:none;"></ul>
+              <!-- Free address section -->
+              <div id="libreSection" style="display:none;">
+                <div class="mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>Adresse de départ
+                    <span class="badge-blue ms-1" id="freeDeptBadge" style="font-size:0.65rem;">1</span>
+                  </label>
+                  <div class="autocomplete-wrap">
+                    <input type="text" class="form-control" id="departLibreSearch"
+                           placeholder="Saisissez une adresse ou cliquez sur la carte…" autocomplete="off"/>
+                    <ul class="autocomplete-dropdown" id="departLibreDropdown" style="display:none;"></ul>
+                  </div>
                 </div>
+                <div class="mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-flag-fill text-success me-1"></i>Adresse de destination
+                    <span class="badge-green ms-1" id="freeArrvBadge" style="font-size:0.65rem;">2</span>
+                  </label>
+                  <div class="autocomplete-wrap">
+                    <input type="text" class="form-control" id="arriveeLibreSearch"
+                           placeholder="Cliquez d'abord le départ sur la carte…" autocomplete="off" disabled/>
+                    <ul class="autocomplete-dropdown" id="arriveeLibreDropdown" style="display:none;"></ul>
+                  </div>
+                </div>
+                <button type="button" class="btn-ghost btn-sm" onclick="getMaPosition()" style="font-size:0.82rem;">
+                  <i class="bi bi-crosshair"></i> Ma position
+                </button>
               </div>
 
-              <!-- Route summary (shown when both are selected) -->
+              <!-- Route summary -->
               <div id="routeSummary" class="alert-covo alert-covo-info mb-3" style="display:none;">
                 <i class="bi bi-signpost-2-fill"></i>
                 <div id="routeSummaryText"></div>
@@ -242,10 +291,10 @@
                 </div>
                 <div class="small mt-1">
                   <i class="bi bi-geo-alt-fill text-danger me-1"></i>
-                  <span th:text="${trajetEnCoursConducteur.demande.pointDepart.nomLieu}"></span>
+                  <span th:text="${trajetEnCoursConducteur.demande.departDisplay}"></span>
                   <i class="bi bi-arrow-right mx-1"></i>
                   <i class="bi bi-flag-fill text-success me-1"></i>
-                  <span th:text="${trajetEnCoursConducteur.demande.pointArrivee.nomLieu}"></span>
+                  <span th:text="${trajetEnCoursConducteur.demande.arriveeDisplay}"></span>
                 </div>
               </div>
             </div>
@@ -317,9 +366,9 @@
         <div class="flex-grow-1 min-width-0">
           <div class="d-flex align-items-center gap-2 flex-wrap">
             <span class="fw-semibold" style="font-size:0.9rem;">
-              <span th:text="${t.demande.pointDepart.nomLieu}"></span>
+              <span th:text="${t.demande.departDisplay}"></span>
               <i class="bi bi-arrow-right mx-1" style="color:var(--stone-400);"></i>
-              <span th:text="${t.demande.pointArrivee.nomLieu}"></span>
+              <span th:text="${t.demande.arriveeDisplay}"></span>
             </span>
             <span class="badge-amber" th:if="${t.conducteur.id == utilisateur.id}">Conducteur</span>
             <span class="badge-blue"  th:if="${t.passager.id   == utilisateur.id}">Passager</span>
@@ -390,6 +439,8 @@ var allMarkers  = {};
 var routeLayer  = null;
 var selectedDept = null;
 var selectedArrv = null;
+var freeModeActive = false;
+var waitingFor = 'depart';
 
 /* ══════════════════════════════════════════
    1. Wire autocomplete FIRST — no dependencies
@@ -433,12 +484,176 @@ var selectedArrv = null;
   /* Form submit guard */
   var df = document.getElementById('demandeForm');
   if (df) df.addEventListener('submit', function(e) {
-    if (!document.getElementById('hDepartId').value || !document.getElementById('hArriveeId').value) {
-      e.preventDefault();
-      alert('Veuillez sélectionner un point de départ et une destination.');
+    var mode = document.getElementById('modePredefini').classList.contains('active') ? 'predefini' : 'libre';
+    if (mode === 'predefini') {
+      if (!document.getElementById('hDepartId').value || !document.getElementById('hArriveeId').value) {
+        e.preventDefault();
+        alert('Veuillez sélectionner un point de départ et une destination.');
+      }
+    } else {
+      if (!document.getElementById('hDepartAdresse').value || !document.getElementById('hArriveeAdresse').value) {
+        e.preventDefault();
+        alert('Veuillez saisir une adresse de départ et une destination.');
+      }
     }
   });
 })();
+
+/* ══════════════════════════════════════════
+   1b. Mode toggle (arrêts / adresse libre)
+   ══════════════════════════════════════════ */
+function setMode(mode) {
+  var predefBtn = document.getElementById('modePredefini');
+  var libreBtn  = document.getElementById('modeLibre');
+  var predefSec = document.getElementById('predefiniSection');
+  var libreSec  = document.getElementById('libreSection');
+  var hint      = document.getElementById('formHint');
+
+  freeModeActive = (mode === 'libre');
+  waitingFor = 'depart';
+
+  if (mode === 'libre') {
+    predefBtn.classList.remove('active'); libreBtn.classList.add('active');
+    predefSec.style.display = 'none';    libreSec.style.display  = 'block';
+    hint.innerHTML = '<i class="bi bi-info-circle me-1"></i>Étape 1 : cliquez sur la carte ou tapez une adresse pour le <strong>départ</strong>.';
+    geocodeNominatim('departLibreSearch',  'departLibreDropdown',  'depart');
+    geocodeNominatim('arriveeLibreSearch', 'arriveeLibreDropdown', 'arrivee');
+  } else {
+    libreBtn.classList.remove('active'); predefBtn.classList.add('active');
+    libreSec.style.display = 'none';     predefSec.style.display = 'block';
+    hint.innerHTML = '<i class="bi bi-info-circle me-1"></i>Tapez le nom d\'un arrêt ou cliquez sur la carte pour sélectionner votre départ.';
+  }
+  document.getElementById('hDepartId').value = '';
+  document.getElementById('hArriveeId').value = '';
+  document.getElementById('hDepartAdresse').value = '';
+  document.getElementById('hDepartLat').value = '';
+  document.getElementById('hDepartLng').value = '';
+  document.getElementById('hArriveeAdresse').value = '';
+  document.getElementById('hArriveeLat').value = '';
+  document.getElementById('hArriveeLng').value = '';
+  if (document.getElementById('submitBtn')) document.getElementById('submitBtn').style.display = 'none';
+  if (document.getElementById('routeSummary')) document.getElementById('routeSummary').style.display = 'none';
+}
+
+/* ══════════════════════════════════════════
+   Clic sur la carte en mode libre + reverse geocoding
+   ══════════════════════════════════════════ */
+function onMapClick(e) {
+  if (!freeModeActive) return;
+  var lat = e.latlng.lat;
+  var lng = e.latlng.lng;
+  fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lng + '&format=json&addressdetails=0')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var nom = (data && data.display_name) ? data.display_name : lat.toFixed(5) + ', ' + lng.toFixed(5);
+      selectLibrePlace({display_name: nom, lat: lat, lon: lng}, waitingFor);
+    })
+    .catch(function() {
+      selectLibrePlace({display_name: lat.toFixed(5) + ', ' + lng.toFixed(5), lat: lat, lon: lng}, waitingFor);
+    });
+}
+
+/* ══════════════════════════════════════════
+   Géolocalisation navigateur (Ma position)
+   ══════════════════════════════════════════ */
+function getMaPosition() {
+  if (!navigator.geolocation || !freeModeActive) return;
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    var lat = pos.coords.latitude;
+    var lng = pos.coords.longitude;
+    fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lng + '&format=json&addressdetails=0')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var nom = (data && data.display_name) ? data.display_name : lat.toFixed(5) + ', ' + lng.toFixed(5);
+        selectLibrePlace({display_name: nom, lat: lat, lon: lng}, waitingFor);
+      })
+      .catch(function() {
+        selectLibrePlace({display_name: lat.toFixed(5) + ', ' + lng.toFixed(5), lat: lat, lon: lng}, waitingFor);
+      });
+  }, function() {
+    alert('Impossible d\'obtenir votre position. Vérifiez les permissions de géolocalisation.');
+  });
+}
+
+/* ══════════════════════════════════════════
+   Nominatim geocoding (free address)
+   ══════════════════════════════════════════ */
+var nomTimeout   = null;
+var libreDeptMrk = null;
+var libreArrvMrk = null;
+
+function geocodeNominatim(inputId, dropdownId, mode) {
+  var input = document.getElementById(inputId);
+  if (!input) return;
+
+  input.addEventListener('input', function() {
+    clearTimeout(nomTimeout);
+    var q = this.value.trim();
+    if (q.length < 3) { document.getElementById(dropdownId).style.display = 'none'; return; }
+    nomTimeout = setTimeout(function() {
+      fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q + ', Reims, France') + '&format=json&limit=5&countrycodes=fr')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var list = document.getElementById(dropdownId); list.innerHTML = '';
+          if (!data || !data.length) { list.style.display = 'none'; return; }
+          data.forEach(function(place) {
+            var li = document.createElement('li');
+            li.textContent = place.display_name;
+            li.addEventListener('mousedown', function(e) { e.preventDefault(); selectLibrePlace(place, mode); });
+            list.appendChild(li);
+          });
+          list.style.display = 'block';
+        }).catch(function() { document.getElementById(dropdownId).style.display = 'none'; });
+    }, 400);
+  });
+  input.addEventListener('focus', function() { if (this.value.trim().length >= 3) this.dispatchEvent(new Event('input')); });
+}
+
+function selectLibrePlace(place, mode) {
+  var nom = place.display_name;
+  var lat = parseFloat(place.lat);
+  var lng = parseFloat(place.lon);
+
+  if (mode === 'depart') {
+    document.getElementById('hDepartAdresse').value = nom;
+    document.getElementById('hDepartLat').value = lat;
+    document.getElementById('hDepartLng').value = lng;
+    document.getElementById('departLibreSearch').value = nom;
+    hideDropdown('departLibreDropdown');
+    if (libreDeptMrk && map) map.removeLayer(libreDeptMrk);
+    if (map) { libreDeptMrk = L.marker([lat,lng]).addTo(map).bindTooltip('<b>Départ</b><br><small>'+nom.substring(0,40)+'…</small>',{permanent:false}).openTooltip(); map.setView([lat,lng],14); }
+    waitingFor = 'arrivee';
+    var hint = document.getElementById('formHint');
+    if (hint) hint.innerHTML = '<i class="bi bi-info-circle me-1"></i>Étape 2 : cliquez sur la carte ou tapez une adresse pour la <strong>destination</strong>.';
+    var ai = document.getElementById('arriveeLibreSearch');
+    if (ai) { ai.disabled = false; ai.focus(); ai.placeholder = 'Saisissez l\'adresse de destination ou cliquez sur la carte…'; }
+  } else {
+    document.getElementById('hArriveeAdresse').value = nom;
+    document.getElementById('hArriveeLat').value = lat;
+    document.getElementById('hArriveeLng').value = lng;
+    document.getElementById('arriveeLibreSearch').value = nom;
+    hideDropdown('arriveeLibreDropdown');
+    if (libreArrvMrk && map) map.removeLayer(libreArrvMrk);
+    if (map) { libreArrvMrk = L.marker([lat,lng]).addTo(map).bindTooltip('<b>Arrivée</b><br><small>'+nom.substring(0,40)+'…</small>',{permanent:false}).openTooltip(); }
+  }
+
+  if (document.getElementById('hDepartAdresse').value && document.getElementById('hArriveeAdresse').value) {
+    var s = document.getElementById('routeSummary');
+    var t = document.getElementById('routeSummaryText');
+    if (s && t) {
+      t.innerHTML = '<span class="fw-bold">' + document.getElementById('hDepartAdresse').value.substring(0,35) + '…</span> <i class="bi bi-arrow-right mx-1"></i> <span class="fw-bold">' + document.getElementById('hArriveeAdresse').value.substring(0,35) + '…</span>';
+      s.style.display = 'flex';
+    }
+    if (document.getElementById('submitBtn')) document.getElementById('submitBtn').style.display = 'flex';
+  }
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.autocomplete-wrap')) {
+    hideDropdown('departLibreDropdown');
+    hideDropdown('arriveeLibreDropdown');
+  }
+});
 
 /* ══════════════════════════════════════════
    2. Load stops from server, then boot the map
@@ -496,6 +711,7 @@ function initMap(pts) {
     }
   });
   L.control.attribution({prefix: false}).addTo(map);
+  map.on('click', onMapClick);
 
   /* Draw line paths */
   var byLine = {};

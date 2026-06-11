@@ -33,9 +33,9 @@
       <div>
         <h1>Détail du trajet</h1>
         <p class="subtitle">
-          <span th:text="${trajet.demande.pointDepart.nomLieu}"></span>
+          <span th:text="${trajet.demande.departDisplay}"></span>
           <i class="bi bi-arrow-right mx-1"></i>
-          <span th:text="${trajet.demande.pointArrivee.nomLieu}"></span>
+          <span th:text="${trajet.demande.arriveeDisplay}"></span>
         </p>
       </div>
     </div>
@@ -84,11 +84,11 @@
 
           <div class="info-row">
             <span class="info-label"><i class="bi bi-geo-alt-fill text-danger me-1"></i>Départ</span>
-            <span class="info-val" th:text="${trajet.demande.pointDepart.nomLieu}"></span>
+            <span class="info-val" th:text="${trajet.demande.departDisplay}"></span>
           </div>
           <div class="info-row">
             <span class="info-label"><i class="bi bi-flag-fill text-success me-1"></i>Arrivée</span>
-            <span class="info-val" th:text="${trajet.demande.pointArrivee.nomLieu}"></span>
+            <span class="info-val" th:text="${trajet.demande.arriveeDisplay}"></span>
           </div>
           <div class="info-row" th:if="${trajet.vehicule != null}">
             <span class="info-label"><i class="bi bi-car-front me-1"></i>Véhicule</span>
@@ -269,12 +269,12 @@
 
 <script th:inline="javascript">
   /* ─── Mini trip map ─── */
-  var deptLat  = /*[[${trajet.demande.pointDepart.latitude}]]*/ 49.25;
-  var deptLng  = /*[[${trajet.demande.pointDepart.longitude}]]*/ 4.03;
-  var arrvLat  = /*[[${trajet.demande.pointArrivee.latitude}]]*/ 49.26;
-  var arrvLng  = /*[[${trajet.demande.pointArrivee.longitude}]]*/ 4.03;
-  var deptNom  = /*[[${trajet.demande.pointDepart.nomLieu}]]*/ 'Départ';
-  var arrvNom  = /*[[${trajet.demande.pointArrivee.nomLieu}]]*/ 'Arrivée';
+  var deptLat  = /*[[${trajet.demande.pointDepart?.latitude} ?: ${trajet.demande.departLatitude}]]*/ 49.25;
+  var deptLng  = /*[[${trajet.demande.pointDepart?.longitude} ?: ${trajet.demande.departLongitude}]]*/ 4.03;
+  var arrvLat  = /*[[${trajet.demande.pointArrivee?.latitude} ?: ${trajet.demande.arriveeLatitude}]]*/ 49.26;
+  var arrvLng  = /*[[${trajet.demande.pointArrivee?.longitude} ?: ${trajet.demande.arriveeLongitude}]]*/ 4.03;
+  var deptNom  = /*[[${trajet.demande.departDisplay}]]*/ 'Départ';
+  var arrvNom  = /*[[${trajet.demande.arriveeDisplay}]]*/ 'Arrivée';
 
   var map = L.map('tripMap').setView([(deptLat+arrvLat)/2, (deptLng+arrvLng)/2], 13);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

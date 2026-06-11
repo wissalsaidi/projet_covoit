@@ -21,12 +21,25 @@ public class DemandeController {
 
     @PostMapping("/nouvelle")
     public String creer(@AuthenticationPrincipal UserDetails userDetails,
-                        @RequestParam Long departId,
-                        @RequestParam Long arriveeId,
+                        @RequestParam(required = false) Long departId,
+                        @RequestParam(required = false) Long arriveeId,
+                        @RequestParam(required = false) String departAdresse,
+                        @RequestParam(required = false) Double departLatitude,
+                        @RequestParam(required = false) Double departLongitude,
+                        @RequestParam(required = false) String arriveeAdresse,
+                        @RequestParam(required = false) Double arriveeLatitude,
+                        @RequestParam(required = false) Double arriveeLongitude,
                         RedirectAttributes redirectAttributes) {
         Utilisateur u = utilisateurService.findByEmail(userDetails.getUsername());
         try {
-            demandeService.creerDemande(u, departId, arriveeId);
+            if (departId != null && arriveeId != null) {
+                demandeService.creerDemande(u, departId, arriveeId);
+            } else if (departAdresse != null && arriveeAdresse != null) {
+                demandeService.creerDemandeLibre(u, departAdresse, departLatitude, departLongitude,
+                    arriveeAdresse, arriveeLatitude, arriveeLongitude);
+            } else {
+                throw new IllegalArgumentException("Veuillez sélectionner un départ et une destination");
+            }
             redirectAttributes.addFlashAttribute("success", "Demande envoyée ! En attente d'un conducteur.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("erreur", e.getMessage());
