@@ -24,16 +24,34 @@ public class DemandeCovoiturage {
     private Utilisateur passager;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "point_depart_id", nullable = false)
+    @JoinColumn(name = "point_depart_id")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private PointRendezVous pointDepart;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "point_arrivee_id", nullable = false)
+    @JoinColumn(name = "point_arrivee_id")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private PointRendezVous pointArrivee;
+
+    @Column(name = "depart_adresse")
+    private String departAdresse;
+
+    @Column(name = "depart_latitude")
+    private Double departLatitude;
+
+    @Column(name = "depart_longitude")
+    private Double departLongitude;
+
+    @Column(name = "arrivee_adresse")
+    private String arriveeAdresse;
+
+    @Column(name = "arrivee_latitude")
+    private Double arriveeLatitude;
+
+    @Column(name = "arrivee_longitude")
+    private Double arriveeLongitude;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -48,4 +66,28 @@ public class DemandeCovoiturage {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Trajet trajet;
+
+    public String getDepartDisplay() {
+        return pointDepart != null ? pointDepart.getNomLieu() : departAdresse;
+    }
+
+    public String getArriveeDisplay() {
+        return pointArrivee != null ? pointArrivee.getNomLieu() : arriveeAdresse;
+    }
+
+    public Double getDepartLat() {
+        return pointDepart != null ? pointDepart.getLatitude() : departLatitude;
+    }
+
+    public Double getDepartLng() {
+        return pointDepart != null ? pointDepart.getLongitude() : departLongitude;
+    }
+
+    public Double getArriveeLat() {
+        return pointArrivee != null ? pointArrivee.getLatitude() : arriveeLatitude;
+    }
+
+    public Double getArriveeLng() {
+        return pointArrivee != null ? pointArrivee.getLongitude() : arriveeLongitude;
+    }
 }

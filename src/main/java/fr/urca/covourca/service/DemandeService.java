@@ -47,7 +47,31 @@ public class DemandeService {
             .build();
 
         demande = demandeRepository.save(demande);
-        notifierConducteurs(demande);
+        notifierConducteurs(demande, depart.getLigne().getId());
+        return demande;
+    }
+
+    @Transactional
+    public DemandeCovoiturage creerDemandeLibre(Utilisateur passager,
+                                                 String departAdresse, Double departLat, Double departLng,
+                                                 String arriveeAdresse, Double arriveeLat, Double arriveeLng) {
+        if (demandeRepository.existsByPassagerAndStatut(passager, StatutDemande.EN_ATTENTE)) {
+            throw new IllegalStateException("Vous avez déjà une demande en cours");
+        }
+
+        DemandeCovoiturage demande = DemandeCovoiturage.builder()
+            .passager(passager)
+            .departAdresse(departAdresse)
+            .departLatitude(departLat)
+            .departLongitude(departLng)
+            .arriveeAdresse(arriveeAdresse)
+            .arriveeLatitude(arriveeLat)
+            .arriveeLongitude(arriveeLng)
+            .statut(StatutDemande.EN_ATTENTE)
+            .build();
+
+        demande = demandeRepository.save(demande);
+        notifierConducteurs(demande, null);
         return demande;
     }
 
@@ -116,21 +140,34 @@ public class DemandeService {
         demandeRepository.save(demande);
     }
 
-    private void notifierConducteurs(DemandeCovoiturage demande) {
-        Long ligneId = demande.getPointDepart().getLigne().getId();
-
+    private void notifierConducteurs(DemandeCovoiturage demande, Long ligneId) {
         List<Utilisateur> conducteurs = utilisateurRepository.findAll().stream()
             .filter(Utilisateur::isEstConducteur)
-            .filter(c -> c.getLignes().stream().anyMatch(l -> l.getId().equals(ligneId)))
             .filter(c -> vehiculeRepository
                 .findByProprietaireAndPlacesDisponiblesGreaterThan(c, 0).size() > 0)
             .toList();
 
+        if (ligneId != null) {
+            conducteurs = conducteurs.stream()
+                .filter(c -> c.getLignes().stream().anyMatch(l -> l.getId().equals(ligneId)))
+                .toList();
+        } else if (demande.getDepartLatitude() != null && demande.getDepartLongitude() != null) {
+            double depLat = demande.getDepartLatitude();
+            double depLng = demande.getDepartLongitude();
+            conducteurs = conducteurs.stream()
+                .filter(c -> c.getLignes().stream().anyMatch(l ->
+                    l.getPoints().stream().anyMatch(p ->
+                        distanceKm(depLat, depLng, p.getLatitude(), p.getLongitude()) <= 2.0
+                    )
+                ))
+                .toList();
+        }
+
         NotificationMessage msg = new NotificationMessage(
             demande.getId(),
             demande.getPassager().getPrenom() + " " + demande.getPassager().getNom(),
-            demande.getPointDepart().getNomLieu(),
-            demande.getPointArrivee().getNomLieu(),
+            demande.getDepartDisplay(),
+            demande.getArriveeDisplay(),
             demande.getPassager().getNoteMoyenne()
         );
 
@@ -141,5 +178,15 @@ public class DemandeService {
                 msg
             );
         }
+    }
+
+    private double distanceKm(double lat1, double lon1, double lat2, double lon2) {
+        double R = 6371;
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                   Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                   Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 }
