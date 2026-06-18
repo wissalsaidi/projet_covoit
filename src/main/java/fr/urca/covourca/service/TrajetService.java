@@ -23,6 +23,18 @@ public class TrajetService {
         Trajet trajet = findById(trajetId);
         verifierConducteur(trajet, conducteur);
 
+        if (trajet.getStatut() == StatutTrajet.TERMINE) {
+            throw new IllegalStateException("Ce trajet est déjà terminé.");
+        }
+
+        if (trajet.getStatut() == StatutTrajet.ANNULE) {
+            throw new IllegalStateException("Impossible de terminer un trajet annulé.");
+        }
+
+        if (!Boolean.TRUE.equals(trajet.getCodeConfirme())) {
+            throw new IllegalStateException("Le code d'échange doit d'abord être confirmé avant de terminer le trajet");
+        }
+
         trajet.setStatut(StatutTrajet.TERMINE);
         trajetRepository.save(trajet);
 
@@ -38,6 +50,14 @@ public class TrajetService {
     public Trajet annulerTrajet(Utilisateur conducteur, Long trajetId) {
         Trajet trajet = findById(trajetId);
         verifierConducteur(trajet, conducteur);
+
+        if (trajet.getStatut() == StatutTrajet.ANNULE) {
+            throw new IllegalStateException("Ce trajet est déjà annulé.");
+        }
+
+        if (trajet.getStatut() == StatutTrajet.TERMINE) {
+            throw new IllegalStateException("Impossible d'annuler un trajet déjà terminé.");
+        }
 
         trajet.setStatut(StatutTrajet.ANNULE);
         trajetRepository.save(trajet);
@@ -60,7 +80,22 @@ public class TrajetService {
     @Transactional
     public boolean confirmerCode(Long trajetId, String code) {
         Trajet trajet = findById(trajetId);
-        return trajet.getIdentifiantEchange().equals(code);
+
+        if (trajet.getStatut() != StatutTrajet.EN_COURS) {
+            throw new IllegalStateException("Le code ne peut être confirmé que sur un trajet en cours.");
+        }
+
+        if (Boolean.TRUE.equals(trajet.getCodeConfirme())) {
+            throw new IllegalStateException("Ce code a déjà été confirmé.");
+        }
+
+        if (trajet.getIdentifiantEchange().equals(code)) {
+            trajet.setCodeConfirme(true);
+            trajet.setStatut(StatutTrajet.CONFIRME);
+            trajetRepository.save(trajet);
+            return true;
+        }
+        return false;
     }
 
     public List<Trajet> historiqueUtilisateur(Utilisateur u) {

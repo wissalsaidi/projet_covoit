@@ -14,12 +14,12 @@
 <!-- Page header -->
 <div class="page-header">
   <div class="container">
-    <h1><i class="bi bi-person-circle me-2" style="color:var(--amber);"></i>Mon profil</h1>
+    <h1><i class="bi bi-person-circle me-2" style="color:var(--amber)"></i>Mon profil</h1>
     <p class="subtitle">Gérez vos informations, votre véhicule et vos lignes de covoiturage</p>
   </div>
 </div>
 
-<div class="container py-4" style="max-width:820px;">
+<div class="container page-container py-4">
 
   <!-- Flash messages -->
   <div th:if="${success}" class="alert-covo alert-covo-success mb-3 anim-up">
@@ -38,14 +38,14 @@
           AB
         </div>
         <div class="flex-grow-1">
-          <h3 class="fw-bold mb-1" style="color:var(--stone-900);"
+          <h3 class="fw-bold mb-1"
               th:text="${utilisateur.prenom + ' ' + utilisateur.nom}">Nom Prénom</h3>
           <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
-            <span style="color:var(--stone-600); font-size:0.9rem;">
+            <span class="text-secondary">
               <i class="bi bi-envelope me-1"></i>
               <span th:text="${utilisateur.email}"></span>
             </span>
-            <span th:if="${utilisateur.telephone}" style="color:var(--stone-600); font-size:0.9rem;">
+            <span th:if="${utilisateur.telephone}" class="text-secondary">
               <i class="bi bi-telephone me-1"></i>
               <span th:text="${utilisateur.telephone}"></span>
             </span>
@@ -57,9 +57,9 @@
         </div>
         <!-- Rating display -->
         <div class="text-center" th:if="${utilisateur.noteMoyenne != null}">
-          <div style="font-size:2rem; font-weight:900; color:var(--amber); line-height:1;"
+          <div class="rating-big"
                th:text="${#numbers.formatDecimal(utilisateur.noteMoyenne,1,1)}">4.8</div>
-          <div style="color:#f59e0b; font-size:1.1rem;">
+          <div class="rating-stars">
             <span th:each="i : ${#numbers.sequence(1,5)}">
               <i th:class="${i <= utilisateur.noteMoyenne} ? 'bi bi-star-fill' : 'bi bi-star'"></i>
             </span>
@@ -67,7 +67,7 @@
           <div class="form-hint">Note moyenne</div>
         </div>
         <div class="text-center" th:if="${utilisateur.noteMoyenne == null}">
-          <div style="font-size:1.5rem; color:var(--stone-300);">
+          <div class="rating-empty">
             <i class="bi bi-star"></i><i class="bi bi-star"></i><i class="bi bi-star"></i><i class="bi bi-star"></i><i class="bi bi-star"></i>
           </div>
           <div class="form-hint">Pas encore noté</div>
@@ -82,27 +82,31 @@
       <h5><div class="card-icon blue"><i class="bi bi-pencil-fill"></i></div> Modifier mes informations</h5>
     </div>
     <div class="covo-card-body">
-      <form th:action="@{/profil/infos}" method="post">
+      <form th:action="@{/profil/infos}" th:object="${profilDto}" method="post">
         <div class="row g-3">
           <div class="col-sm-6">
             <label class="form-label">Prénom *</label>
-            <input type="text" class="form-control" name="prenom" th:value="${utilisateur.prenom}" required maxlength="80"/>
+            <input type="text" class="form-control" th:field="*{prenom}" th:value="${utilisateur.prenom}" required maxlength="80"/>
+            <div class="text-danger small" th:if="${#fields.hasErrors('prenom')}" th:errors="*{prenom}"></div>
           </div>
           <div class="col-sm-6">
             <label class="form-label">Nom *</label>
-            <input type="text" class="form-control" name="nom" th:value="${utilisateur.nom}" required maxlength="80"/>
+            <input type="text" class="form-control" th:field="*{nom}" th:value="${utilisateur.nom}" required maxlength="80"/>
+            <div class="text-danger small" th:if="${#fields.hasErrors('nom')}" th:errors="*{nom}"></div>
           </div>
           <div class="col-sm-6">
             <label class="form-label">Téléphone</label>
-            <input type="tel" class="form-control" name="telephone" th:value="${utilisateur.telephone}" placeholder="06 xx xx xx xx" maxlength="20"/>
+            <input type="tel" class="form-control" th:field="*{telephone}" th:value="${utilisateur.telephone}" placeholder="06 xx xx xx xx" maxlength="20"/>
+            <div class="text-danger small" th:if="${#fields.hasErrors('telephone')}" th:errors="*{telephone}"></div>
+            <div class="form-hint" th:unless="${#fields.hasErrors('telephone')}">Format attendu : +33 6 12 34 56 78 ou 0612345678</div>
           </div>
           <div class="col-sm-6">
             <label class="form-label">Email</label>
             <input type="email" class="form-control" th:value="${utilisateur.email}" disabled
-                   style="background:var(--stone-50); color:var(--stone-500);" title="L'email ne peut pas être modifié"/>
+                   title="L'email ne peut pas être modifié"/>
           </div>
           <div class="col-12 d-flex justify-content-end">
-            <button type="submit" class="btn-amber" style="justify-content:center;">
+            <button type="submit" class="btn-amber">
               <i class="bi bi-check-circle"></i> Enregistrer les modifications
             </button>
           </div>
@@ -129,8 +133,8 @@
               <div class="flex-grow-1">
                 <div class="fw-bold" th:text="${v.marque + ' ' + v.modele}"></div>
                 <div class="small d-flex flex-wrap gap-2 mt-1">
-                  <span style="color:var(--stone-600);"><i class="bi bi-palette me-1"></i><span th:text="${v.couleur}"></span></span>
-                  <span style="color:var(--stone-600);"><i class="bi bi-card-text me-1"></i><span th:text="${v.immatriculation}"></span></span>
+                  <span class="text-muted-covo"><i class="bi bi-palette me-1"></i><span th:text="${v.couleur}"></span></span>
+                  <span class="text-muted-covo"><i class="bi bi-card-text me-1"></i><span th:text="${v.immatriculation}"></span></span>
                   <span class="badge-green"><i class="bi bi-people me-1"></i><span th:text="${v.placesDisponibles + '/' + v.nombrePlaces + ' places'}"></span></span>
                 </div>
               </div>
@@ -138,9 +142,9 @@
           </div>
 
           <div th:if="${#lists.isEmpty(vehicules)}" class="empty-state py-3 mb-3">
-            <i class="bi bi-car-front" style="color:var(--stone-300);"></i>
-            <p class="fw-bold" style="color:var(--stone-600);">Aucun véhicule</p>
-            <p style="color:var(--stone-400); font-size:0.85rem;">Ajoutez un véhicule pour devenir conducteur</p>
+            <i class="bi bi-car-front"></i>
+            <p class="fw-bold">Aucun véhicule</p>
+            <p>Ajoutez un véhicule pour devenir conducteur</p>
           </div>
 
           <!-- Add vehicle form -->
@@ -168,7 +172,7 @@
                 <input type="number" class="form-control" th:field="*{nombrePlaces}" placeholder="4" min="1" max="9" required/>
               </div>
               <div class="col-6 d-flex align-items-end">
-                <button type="submit" class="btn-amber w-100" style="justify-content:center;">
+                <button type="submit" class="btn-amber btn-w-full">
                   <i class="bi bi-plus-circle"></i> Ajouter
                 </button>
               </div>
@@ -205,65 +209,60 @@
                   <input type="checkbox" name="ligneIds" th:value="${l.id}"
                          th:checked="${#lists.contains(utilisateur.lignes, l)}"/>
                   <div>
-                    <div class="fw-semibold" style="font-size:0.88rem;" th:text="${l.nom}"></div>
+                    <div class="fw-semibold" th:text="${l.nom}"></div>
                   </div>
                 </label>
               </div>
-              <button type="submit" class="btn-amber w-100" style="justify-content:center;">
+              <button type="submit" class="btn-amber btn-w-full">
                 <i class="bi bi-check-circle"></i> Enregistrer les lignes
               </button>
             </form>
           </div>
 
           <div th:if="${#lists.isEmpty(toutesLignes)}" class="empty-state py-2">
-            <i class="bi bi-signpost-2" style="color:var(--stone-300); font-size:2rem;"></i>
+            <i class="bi bi-signpost-2"></i>
             <p class="form-hint">Aucune ligne disponible.</p>
           </div>
         </div>
       </div>
+    </div>
+  </div>
 
-      <!-- Quick stats -->
-      <div class="covo-card mt-4 anim-up d4">
-        <div class="covo-card-header">
-          <h5><div class="card-icon blue"><i class="bi bi-bar-chart-fill"></i></div> Statistiques</h5>
+  <!-- Quick stats / full width -->
+  <div class="covo-card mt-4 anim-up d4">
+    <div class="covo-card-header">
+      <h5><div class="card-icon blue"><i class="bi bi-bar-chart-fill"></i></div> Statistiques</h5>
+    </div>
+    <div class="covo-card-body">
+      <div class="d-flex flex-column gap-3">
+        <div class="d-flex align-items-center justify-content-between">
+          <span class="text-muted-covo">
+            <i class="bi bi-person-walking me-1"></i>Mode passager
+          </span>
+          <span class="badge-blue">Actif</span>
         </div>
-        <div class="covo-card-body">
-          <div class="d-flex flex-column gap-3">
-            <div class="d-flex align-items-center justify-content-between">
-              <span style="color:var(--stone-600); font-size:0.88rem;">
-                <i class="bi bi-person-walking me-1"></i>Mode passager
-              </span>
-              <span class="badge-blue">Actif</span>
-            </div>
-            <div class="d-flex align-items-center justify-content-between">
-              <span style="color:var(--stone-600); font-size:0.88rem;">
-                <i class="bi bi-car-front me-1"></i>Mode conducteur
-              </span>
-              <span class="badge-green" th:if="${utilisateur.estConducteur}">Actif</span>
-              <span class="badge-gray"  th:if="${!utilisateur.estConducteur}">Inactif</span>
-            </div>
-            <div class="d-flex align-items-center justify-content-between">
-              <span style="color:var(--stone-600); font-size:0.88rem;">
-                <i class="bi bi-star me-1"></i>Note moyenne
-              </span>
-              <span th:if="${utilisateur.noteMoyenne != null}"
-                    th:text="${#numbers.formatDecimal(utilisateur.noteMoyenne,1,1) + ' / 5 ⭐'}"
-                    class="badge-amber"></span>
-              <span th:if="${utilisateur.noteMoyenne == null}" class="badge-gray">—</span>
-            </div>
-          </div>
+        <div class="d-flex align-items-center justify-content-between">
+          <span class="text-muted-covo">
+            <i class="bi bi-car-front me-1"></i>Mode conducteur
+          </span>
+          <span class="badge-green" th:if="${utilisateur.estConducteur}">Actif</span>
+          <span class="badge-gray"  th:if="${!utilisateur.estConducteur}">Inactif</span>
+        </div>
+        <div class="d-flex align-items-center justify-content-between">
+          <span class="text-muted-covo">
+            <i class="bi bi-star me-1"></i>Note moyenne
+          </span>
+          <span th:if="${utilisateur.noteMoyenne != null}"
+                th:text="${#numbers.formatDecimal(utilisateur.noteMoyenne,1,1) + ' / 5 ⭐'}"
+                class="badge-amber"></span>
+          <span th:if="${utilisateur.noteMoyenne == null}" class="badge-gray">—</span>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Footer -->
-<footer class="app-footer">
-  <div class="container text-center">
-    <p class="mb-0">© 2026 CovoURCA</p>
-  </div>
-</footer>
+<div th:replace="~{fragments/footer :: footer}"></div>
 
 <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
 <script>
