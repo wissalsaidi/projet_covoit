@@ -50,6 +50,10 @@ public class Trajet {
     @Column(name = "identifiant_echange", length = 4)
     private String identifiantEchange;
 
+    @Column(name = "code_confirme")
+    @Builder.Default
+    private Boolean codeConfirme = false;
+
     @OneToMany(mappedBy = "trajet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

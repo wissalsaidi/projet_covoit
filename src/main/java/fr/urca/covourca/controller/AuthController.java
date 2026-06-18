@@ -59,4 +59,17 @@ public class AuthController {
     public String conditions() {
         return "conditions";
     }
+
+    @GetMapping("/mot-de-passe-oublie")
+    public String motDePasseOublieForm() {
+        return "auth/mot-de-passe-oublie";
+    }
+
+    @PostMapping("/mot-de-passe-oublie")
+    public String motDePasseOublie(@RequestParam String email,
+                                   RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("success",
+            "Si un compte existe avec cet email, vous recevrez un lien de réinitialisation.");
+        return "redirect:/mot-de-passe-oublie";
+    }
 }

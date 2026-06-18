@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -32,6 +33,7 @@ public class DashboardController {
     private final ObjectMapper objectMapper;
 
     @GetMapping("/dashboard")
+    @Transactional(readOnly = true)
     public String dashboard(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         Utilisateur u = utilisateurService.findByEmail(userDetails.getUsername());
         model.addAttribute("utilisateur", u);
@@ -43,9 +45,9 @@ public class DashboardController {
         model.addAttribute("demandeEnCours", demandeEnCours.orElse(null));
 
         Optional<Trajet> trajetEnCoursPassager =
-            trajetRepository.findByPassagerAndStatut(u, StatutTrajet.EN_COURS);
+            trajetRepository.findByPassagerAndStatutIn(u, List.of(StatutTrajet.EN_COURS, StatutTrajet.CONFIRME));
         Optional<Trajet> trajetEnCoursConducteur =
-            trajetRepository.findByConducteurAndStatut(u, StatutTrajet.EN_COURS);
+            trajetRepository.findByConducteurAndStatutIn(u, List.of(StatutTrajet.EN_COURS, StatutTrajet.CONFIRME));
         model.addAttribute("trajetEnCoursPassager", trajetEnCoursPassager.orElse(null));
         model.addAttribute("trajetEnCoursConducteur", trajetEnCoursConducteur.orElse(null));
 

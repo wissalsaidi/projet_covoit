@@ -226,6 +226,7 @@
             <input type="tel" class="form-control" th:field="*{telephone}" required
                    placeholder="+33 6 12 34 56 78"/>
             <div class="text-danger small" th:if="${#fields.hasErrors('telephone')}" th:errors="*{telephone}"></div>
+            <div class="form-hint" th:unless="${#fields.hasErrors('telephone')}">Format attendu : +33 6 12 34 56 78 ou 0612345678</div>
           </div>
 
           <!-- Password row -->

@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Random;
 
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+
 @Service
 @RequiredArgsConstructor
 public class DemandeService {
@@ -84,44 +86,51 @@ public class DemandeService {
             throw new IllegalStateException("Cette demande a déjà été acceptée");
         }
 
-        List<Vehicule> vehicules = vehiculeRepository
-            .findByProprietaireAndPlacesDisponiblesGreaterThan(conducteur, 0);
-        if (vehicules.isEmpty()) {
-            throw new IllegalStateException("Plus de places disponibles");
+        if (demande.getPassager().getId().equals(conducteur.getId())) {
+            throw new IllegalStateException("Un conducteur ne peut pas accepter sa propre demande");
         }
 
-        Vehicule vehicule = vehicules.get(0);
-        vehicule.setPlacesDisponibles(vehicule.getPlacesDisponibles() - 1);
-        vehiculeRepository.save(vehicule);
+        try {
+            List<Vehicule> vehicules = vehiculeRepository
+                .findByProprietaireAndPlacesDisponiblesGreaterThan(conducteur, 0);
+            if (vehicules.isEmpty()) {
+                throw new IllegalStateException("Plus de places disponibles");
+            }
 
-        demande.setStatut(StatutDemande.ACCEPTEE);
-        demandeRepository.save(demande);
+            Vehicule vehicule = vehicules.get(0);
+            vehicule.setPlacesDisponibles(vehicule.getPlacesDisponibles() - 1);
+            vehiculeRepository.save(vehicule);
 
-        String code = String.format("%04d", new Random().nextInt(10000));
+            demande.setStatut(StatutDemande.ACCEPTEE);
+            demandeRepository.save(demande);
 
-        Trajet trajet = Trajet.builder()
-            .conducteur(conducteur)
-            .passager(demande.getPassager())
-            .demande(demande)
-            .vehicule(vehicule)
-            .statut(StatutTrajet.EN_COURS)
-            .identifiantEchange(code)
-            .build();
+            String code = String.format("%04d", 1000 + new Random().nextInt(9000));
 
-        Trajet saved = trajetRepository.save(trajet);
+            Trajet trajet = Trajet.builder()
+                .conducteur(conducteur)
+                .passager(demande.getPassager())
+                .demande(demande)
+                .vehicule(vehicule)
+                .statut(StatutTrajet.EN_COURS)
+                .identifiantEchange(code)
+                .build();
 
-        // Notify passenger in real time that their request was accepted
-        messagingTemplate.convertAndSendToUser(
-            demande.getPassager().getEmail(),
-            "/queue/acceptations",
-            java.util.Map.of(
-                "trajetId", saved.getId(),
-                "conducteurNom", conducteur.getPrenom() + " " + conducteur.getNom(),
-                "vehicule", vehicule.getMarque() + " " + vehicule.getModele() + " (" + vehicule.getCouleur() + ")"
-            )
-        );
+            Trajet saved = trajetRepository.save(trajet);
 
-        return saved;
+            messagingTemplate.convertAndSendToUser(
+                demande.getPassager().getEmail(),
+                "/queue/acceptations",
+                java.util.Map.of(
+                    "trajetId", saved.getId(),
+                    "conducteurNom", conducteur.getPrenom() + " " + conducteur.getNom(),
+                    "vehicule", vehicule.getMarque() + " " + vehicule.getModele() + " (" + vehicule.getCouleur() + ")"
+                )
+            );
+
+            return saved;
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw new IllegalStateException("Cette demande a déjà été acceptée par un autre conducteur");
+        }
     }
 
     @Transactional
