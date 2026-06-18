@@ -62,6 +62,11 @@ public class DemandeCovoiturage {
     @Builder.Default
     private LocalDateTime dateHeure = LocalDateTime.now();
 
+    @Version
+    @Column(name = "version")
+    @Builder.Default
+    private Long version = 0L;
+
     @OneToOne(mappedBy = "demande", cascade = CascadeType.ALL)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

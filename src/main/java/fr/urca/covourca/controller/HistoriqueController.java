@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -18,6 +19,7 @@ public class HistoriqueController {
     private final UtilisateurService utilisateurService;
 
     @GetMapping("/historique")
+    @Transactional(readOnly = true)
     public String historique(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         Utilisateur u = utilisateurService.findByEmail(userDetails.getUsername());
         var trajets = trajetService.historiqueUtilisateur(u);
