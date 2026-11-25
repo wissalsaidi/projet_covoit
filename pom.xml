@@ -85,6 +85,12 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- Base en mémoire pour les tests (Jenkins n'a pas de MySQL) -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
 
 		<!-- WebJars : Bootstrap 5, SockJS, STOMP -->
 		<dependency>

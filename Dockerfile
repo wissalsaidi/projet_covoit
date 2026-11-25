@@ -7,7 +7,6 @@ RUN mvn package -DskipTests -B
 
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-RUN rm -rf templates static || true
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
